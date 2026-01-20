@@ -1,6 +1,21 @@
 /**
  * Route and navigation related type definitions
  */
+export type RoutePoint = {
+  id: string;
+  lat: number;
+  lng: number;
+  elevation?: number;
+};
+
+export type Route = {
+  id: string;
+  name: string;
+  points: RoutePoint[];
+  distance: number;
+  elevationGain: number;
+  createdAt: Date;
+};
 
 export type LngLat = [number, number];
 

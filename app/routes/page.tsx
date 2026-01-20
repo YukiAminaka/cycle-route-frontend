@@ -1,39 +1,40 @@
-"use client"
+"use client";
 
-import { Header } from "@/components/header"
-import { MyRoutes } from "@/components/my-routes"
-import { RouteDetails } from "@/components/route-details"
-import { useState, useEffect } from "react"
-import { getSavedRoutes, deleteRoute } from "@/lib/route-storage"
-import { useRouter } from "next/navigation"
-import type { Route } from "@/components/map-interface"
+import { Header } from "@/components/header";
+import { MyRoutes } from "@/components/my-routes";
+import { RouteDetails } from "@/components/route-details";
+import { useState, useEffect } from "react";
+import { getSavedRoutes, deleteRoute } from "@/lib/route-storage";
+import { useRouter } from "next/navigation";
+import type { Route } from "@/types/route";
 
 export default function RoutesPage() {
-  const [savedRoutes, setSavedRoutes] = useState<Route[]>([])
-  const [selectedRouteForDetails, setSelectedRouteForDetails] = useState<Route | null>(null)
-  const router = useRouter()
+  const [savedRoutes, setSavedRoutes] = useState<Route[]>([]);
+  const [selectedRouteForDetails, setSelectedRouteForDetails] =
+    useState<Route | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
-    setSavedRoutes(getSavedRoutes())
-  }, [])
+    setSavedRoutes(getSavedRoutes());
+  }, []);
 
   const handleLoadRoute = (route: Route) => {
     // Navigate to home page to load the route on the map
-    router.push("/")
-  }
+    router.push("/");
+  };
 
   const handleDeleteRoute = (routeId: string) => {
-    deleteRoute(routeId)
-    setSavedRoutes(getSavedRoutes())
-  }
+    deleteRoute(routeId);
+    setSavedRoutes(getSavedRoutes());
+  };
 
   const handleViewDetails = (route: Route) => {
-    setSelectedRouteForDetails(route)
-  }
+    setSelectedRouteForDetails(route);
+  };
 
   const handleCreateNew = () => {
-    router.push("/")
-  }
+    router.push("/");
+  };
 
   return (
     <div className="flex h-screen flex-col">
@@ -47,9 +48,12 @@ export default function RoutesPage() {
           onCreateNew={handleCreateNew}
         />
         {selectedRouteForDetails && (
-          <RouteDetails route={selectedRouteForDetails} onClose={() => setSelectedRouteForDetails(null)} />
+          <RouteDetails
+            route={selectedRouteForDetails}
+            onClose={() => setSelectedRouteForDetails(null)}
+          />
         )}
       </main>
     </div>
-  )
+  );
 }

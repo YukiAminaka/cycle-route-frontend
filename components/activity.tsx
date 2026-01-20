@@ -1,18 +1,24 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { Route } from "@/components/map-interface"
-import { Calendar, MapPin, TrendingUp, Clock } from "lucide-react"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import type { Route } from "@/types/route";
+import { Calendar, MapPin, TrendingUp, Clock } from "lucide-react";
 
 interface ActivityProps {
-  routes: Route[]
+  routes: Route[];
 }
 
 export function Activity({ routes }: ActivityProps) {
   // Sort routes by date (most recent first)
   const sortedRoutes = [...routes].sort((a, b) => {
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  })
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat("ja-JP", {
@@ -21,27 +27,31 @@ export function Activity({ routes }: ActivityProps) {
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    }).format(new Date(date))
-  }
+    }).format(new Date(date));
+  };
 
   const calculateEstimatedTime = (distance: number) => {
     // Assuming average speed of 20 km/h
-    const hours = distance / 20
-    const minutes = Math.round(hours * 60)
+    const hours = distance / 20;
+    const minutes = Math.round(hours * 60);
     if (minutes < 60) {
-      return `${minutes}分`
+      return `${minutes}分`;
     }
-    const h = Math.floor(minutes / 60)
-    const m = minutes % 60
-    return `${h}時間${m > 0 ? `${m}分` : ""}`
-  }
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return `${h}時間${m > 0 ? `${m}分` : ""}`;
+  };
 
   return (
     <div className="h-full overflow-auto bg-background p-6">
       <div className="mx-auto max-w-4xl">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-foreground mb-2">アクティビティ</h2>
-          <p className="text-muted-foreground">最近のサイクリングルートの履歴</p>
+          <h2 className="text-3xl font-bold text-foreground mb-2">
+            アクティビティ
+          </h2>
+          <p className="text-muted-foreground">
+            最近のサイクリングルートの履歴
+          </p>
         </div>
 
         {sortedRoutes.length === 0 ? (
@@ -58,7 +68,10 @@ export function Activity({ routes }: ActivityProps) {
         ) : (
           <div className="space-y-4">
             {sortedRoutes.map((route) => (
-              <Card key={route.id} className="hover:shadow-lg transition-shadow">
+              <Card
+                key={route.id}
+                className="hover:shadow-lg transition-shadow"
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div>
@@ -76,21 +89,31 @@ export function Activity({ routes }: ActivityProps) {
                       <MapPin className="h-5 w-5 text-primary" />
                       <div>
                         <p className="text-sm text-muted-foreground">距離</p>
-                        <p className="text-lg font-semibold">{route.distance.toFixed(1)} km</p>
+                        <p className="text-lg font-semibold">
+                          {route.distance.toFixed(1)} km
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <TrendingUp className="h-5 w-5 text-primary" />
                       <div>
-                        <p className="text-sm text-muted-foreground">獲得標高</p>
-                        <p className="text-lg font-semibold">{route.elevationGain.toFixed(0)} m</p>
+                        <p className="text-sm text-muted-foreground">
+                          獲得標高
+                        </p>
+                        <p className="text-lg font-semibold">
+                          {route.elevationGain.toFixed(0)} m
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="h-5 w-5 text-primary" />
                       <div>
-                        <p className="text-sm text-muted-foreground">推定時間</p>
-                        <p className="text-lg font-semibold">{calculateEstimatedTime(route.distance)}</p>
+                        <p className="text-sm text-muted-foreground">
+                          推定時間
+                        </p>
+                        <p className="text-lg font-semibold">
+                          {calculateEstimatedTime(route.distance)}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -101,5 +124,5 @@ export function Activity({ routes }: ActivityProps) {
         )}
       </div>
     </div>
-  )
+  );
 }
