@@ -37,23 +37,20 @@ export default function RoutesPage() {
   };
 
   return (
-    <div className="flex h-screen flex-col">
-      <Header currentView="routes" />
-      <main className="flex-1 overflow-hidden">
-        <MyRoutes
-          routes={savedRoutes}
-          onLoadRoute={handleLoadRoute}
-          onDeleteRoute={handleDeleteRoute}
-          onViewDetails={handleViewDetails}
-          onCreateNew={handleCreateNew}
+    <>
+      <MyRoutes
+        routes={savedRoutes}
+        onLoadRoute={handleLoadRoute}
+        onDeleteRoute={handleDeleteRoute}
+        onViewDetails={handleViewDetails}
+        onCreateNew={handleCreateNew}
+      />
+      {selectedRouteForDetails && (
+        <RouteDetails
+          route={selectedRouteForDetails}
+          onClose={() => setSelectedRouteForDetails(null)}
         />
-        {selectedRouteForDetails && (
-          <RouteDetails
-            route={selectedRouteForDetails}
-            onClose={() => setSelectedRouteForDetails(null)}
-          />
-        )}
-      </main>
-    </div>
+      )}
+    </>
   );
 }

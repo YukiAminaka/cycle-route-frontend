@@ -33,22 +33,19 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex h-screen flex-col">
-      <Header currentView="dashboard" />
-      <main className="flex-1 overflow-hidden">
-        <Dashboard
-          routes={savedRoutes}
-          onLoadRoute={handleLoadRoute}
-          onDeleteRoute={handleDeleteRoute}
-          onViewDetails={handleViewDetails}
+    <>
+      <Dashboard
+        routes={savedRoutes}
+        onLoadRoute={handleLoadRoute}
+        onDeleteRoute={handleDeleteRoute}
+        onViewDetails={handleViewDetails}
+      />
+      {selectedRouteForDetails && (
+        <RouteDetails
+          route={selectedRouteForDetails}
+          onClose={() => setSelectedRouteForDetails(null)}
         />
-        {selectedRouteForDetails && (
-          <RouteDetails
-            route={selectedRouteForDetails}
-            onClose={() => setSelectedRouteForDetails(null)}
-          />
-        )}
-      </main>
-    </div>
+      )}
+    </>
   );
 }
