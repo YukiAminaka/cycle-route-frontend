@@ -1,6 +1,4 @@
-"use client";
-
-import { Header } from "@/components/header";
+import { getServerSession } from "@ory/nextjs/app";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,14 +13,14 @@ import {
   TrendingUp,
   Settings,
 } from "lucide-react";
-import { use } from "react";
 
-export default function UserProfilePage({
+export default async function UserProfilePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params);
+  const { id } = await params;
+  const session = await getServerSession();
 
   // Mock user data - in a real app, this would be fetched based on the id
   const user = {
@@ -95,8 +93,47 @@ export default function UserProfilePage({
   };
 
   return (
-    <>
+    <div className="overflow-auto h-full">
       <div className="mx-auto max-w-6xl p-6 space-y-6 bg-background">
+        {/* Session Info Card */}
+        {session && (
+          <Card className="p-6 bg-blue-50 dark:bg-blue-950">
+            <h2 className="text-xl font-bold text-foreground mb-4">
+              セッション情報
+            </h2>
+            <div className="space-y-2 text-sm">
+              <div className="grid grid-cols-2 gap-2">
+                <span className="font-semibold text-muted-foreground">
+                  ユーザーID:
+                </span>
+                <span className="text-foreground break-all">
+                  {session.identity?.id || "N/A"}
+                </span>
+                <span className="font-semibold text-muted-foreground">
+                  認証済み:
+                </span>
+                <span className="text-foreground">
+                  {session.active ? "はい" : "いいえ"}
+                </span>
+                <span className="font-semibold text-muted-foreground">
+                  セッションID:
+                </span>
+                <span className="text-foreground break-all">
+                  {session.id || "N/A"}
+                </span>
+              </div>
+              <details className="mt-4">
+                <summary className="cursor-pointer font-semibold text-muted-foreground hover:text-foreground">
+                  詳細情報を表示
+                </summary>
+                <pre className="mt-2 p-4 bg-background rounded-md overflow-auto text-xs">
+                  {JSON.stringify(session, null, 2)}
+                </pre>
+              </details>
+            </div>
+          </Card>
+        )}
+
         {/* Profile Header */}
         <Card className="p-8">
           <div className="flex flex-col md:flex-row gap-6 items-start">
@@ -271,6 +308,6 @@ export default function UserProfilePage({
           </TabsContent>
         </Tabs>
       </div>
-    </>
+    </div>
   );
 }

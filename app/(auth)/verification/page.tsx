@@ -11,5 +11,9 @@ export default async function VerificationPage(props: OryPageParams) {
     return null;
   }
 
-  return <Verification flow={flow} config={config} />;
+  return (
+    <div className="ory-elements">
+      <Verification flow={flow} config={config} />
+    </div>
+  );
 }

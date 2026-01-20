@@ -3,17 +3,17 @@ import type { OryClientConfiguration } from "@ory/elements-react";
 const config: OryClientConfiguration = {
   project: {
     default_locale: "en",
-    default_redirect_url: "/",
+    default_redirect_url: "/dashboard",
     error_ui_url: "/error",
     locale_behavior: "force_default",
-    name: "Ory Next.js App Router Example",
+    name: "CycleRoute",
     registration_enabled: true,
     verification_enabled: true,
     recovery_enabled: true,
-    registration_ui_url: "/auth/registration",
-    verification_ui_url: "/auth/verification",
-    recovery_ui_url: "/auth/recovery",
-    login_ui_url: "/auth/login",
+    registration_ui_url: "/register",
+    verification_ui_url: "/verification",
+    recovery_ui_url: "/recovery",
+    login_ui_url: "/login",
     settings_ui_url: "/settings",
   },
 };

@@ -11,12 +11,14 @@ export async function Header({ currentView }: HeaderProps) {
 
   // Ory Kratosのログアウトフローからログアウト用のURLを取得
   const logoutUrl = logoutFlow?.logout_url;
+  const userId = session?.identity?.id;
 
   return (
     <HeaderClient
       currentView={currentView}
       isAuthenticated={!!session}
       logoutUrl={logoutUrl}
+      userId={userId}
     />
   );
 }

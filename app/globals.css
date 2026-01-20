@@ -125,3 +125,36 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Auth layout: スクロール可能なレイアウト */
+.auth-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.auth-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 1rem;
+}
+
+.auth-footer {
+  border-top: 1px solid oklch(0.9 0 0);
+  background-color: oklch(1 0 0);
+  padding: 2rem 0;
+  margin-top: auto;
+}
+
+.dark .auth-footer {
+  border-top: 1px solid oklch(0.25 0 0);
+  background-color: oklch(0.15 0 0);
+}
+
+.ory-elements {
+  width: 100%;
+  max-width: 28rem;
+}

@@ -12,12 +12,14 @@ export default async function LoginPage(props: OryPageParams) {
   }
 
   return (
-    <Login
-      flow={flow}
-      config={config}
-      components={{
-        Card: {},
-      }}
-    />
+    <div className="ory-elements">
+      <Login
+        flow={flow}
+        config={config}
+        components={{
+          Card: {},
+        }}
+      />
+    </div>
   );
 }

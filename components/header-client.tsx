@@ -27,12 +27,14 @@ interface HeaderClientProps {
   currentView?: "dashboard" | "activity" | "routes";
   isAuthenticated: boolean;
   logoutUrl?: string;
+  userId?: string;
 }
 
 export function HeaderClient({
   currentView,
   isAuthenticated,
   logoutUrl,
+  userId,
 }: HeaderClientProps) {
   const router = useRouter();
 
@@ -121,7 +123,11 @@ export function HeaderClient({
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => router.push("/profile")}>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      router.push(userId ? `/users/${userId}` : "/users")
+                    }
+                  >
                     <User className="mr-2 h-4 w-4" />
                     プロフィール
                   </DropdownMenuItem>
@@ -161,12 +167,10 @@ export function HeaderClient({
           </>
         ) : (
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => router.push("/auth/login")}>
+            <Button variant="ghost" onClick={() => router.push("/login")}>
               ログイン
             </Button>
-            <Button onClick={() => router.push("/auth/registration")}>
-              新規登録
-            </Button>
+            <Button onClick={() => router.push("/register")}>新規登録</Button>
           </div>
         )}
       </div>

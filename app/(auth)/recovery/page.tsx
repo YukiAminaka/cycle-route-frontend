@@ -11,5 +11,9 @@ export default async function RecoveryPage(props: OryPageParams) {
     return null;
   }
 
-  return <Recovery flow={flow} config={config} />;
+  return (
+    <div className="ory-elements">
+      <Recovery flow={flow} config={config} />
+    </div>
+  );
 }

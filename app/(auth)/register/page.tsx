@@ -12,12 +12,14 @@ export default async function RegistrationPage(props: OryPageParams) {
   }
 
   return (
-    <Registration
-      flow={flow}
-      config={config}
-      components={{
-        Card: {},
-      }}
-    />
+    <div className="ory-elements">
+      <Registration
+        flow={flow}
+        config={config}
+        components={{
+          Card: {},
+        }}
+      />
+    </div>
   );
 }
