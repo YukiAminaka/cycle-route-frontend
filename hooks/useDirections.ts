@@ -17,8 +17,19 @@ interface UseDirectionsOptions {
   onRouteChange?: (cues: Cue[]) => void;
 }
 
+interface RouteInfo {
+  distance: number; // meters
+  duration: number; // seconds
+  elevationGain: number; // meters
+  elevationLoss: number; // meters
+  pathGeom: string; // GeoJSON geometry as string
+  firstPoint: string; // GeoJSON point as string
+  lastPoint: string; // GeoJSON point as string
+}
+
 interface UseDirectionsResult {
   waypoints: LngLat[];
+  routeInfo: RouteInfo | null;
   addWaypoint: (coord: LngLat) => void;
   removeWaypoint: (index: number) => void;
   clearWaypoints: () => void;
@@ -38,6 +49,7 @@ export function useDirections({
   const directionsRef = useRef<MapLibreGlDirections | null>(null);
   const [waypoints, setWaypoints] = useState<LngLat[]>([]);
   const [isReady, setIsReady] = useState(false);
+  const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
 
   // Initialize directions plugin
   useEffect(() => {
@@ -71,7 +83,7 @@ export function useDirections({
         const response = event?.data as DirectionsResponse | undefined;
         const route: DirectionsRoute | undefined = response?.routes?.[0];
 
-        if (!route || !onRouteChange) return;
+        if (!route) return;
 
         // Extract cue sheet from route steps
         const steps = (route.legs ?? []).flatMap((leg) => leg.steps ?? []);
@@ -88,7 +100,41 @@ export function useDirections({
           geometry: step.geometry,
         }));
 
-        onRouteChange(cues);
+        // Calculate elevation gain and loss from steps
+        let elevationGain = 0;
+        let elevationLoss = 0;
+
+        // Note: Mapbox Directions API doesn't directly provide elevation data in steps
+        // You might need to use a separate elevation API or use the route's elevation data if available
+        // For now, we'll set default values
+
+        // Get first and last points from waypoints
+        const coordinates = route.geometry?.coordinates ?? [];
+        const firstPoint = coordinates[0];
+        const lastPoint = coordinates[coordinates.length - 1];
+
+        // Create route info
+        const newRouteInfo: RouteInfo = {
+          distance: route.distance ?? 0, // in meters
+          duration: route.duration ?? 0, // in seconds
+          elevationGain, // meters
+          elevationLoss, // meters
+          pathGeom: JSON.stringify(route.geometry), // GeoJSON LineString
+          firstPoint: JSON.stringify({
+            type: "Point",
+            coordinates: firstPoint,
+          }),
+          lastPoint: JSON.stringify({
+            type: "Point",
+            coordinates: lastPoint,
+          }),
+        };
+
+        setRouteInfo(newRouteInfo);
+
+        if (onRouteChange) {
+          onRouteChange(cues);
+        }
       };
 
       // ルートリクエスト完了時のイベントリスナーを登録
@@ -156,10 +202,12 @@ export function useDirections({
 
     directions.clear();
     setWaypoints([]);
+    setRouteInfo(null);
   }, []);
 
   return {
     waypoints,
+    routeInfo,
     addWaypoint,
     removeWaypoint,
     clearWaypoints,

@@ -2,33 +2,37 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Upload,
-  Plus,
-  ChevronLeft,
-  ChevronRight,
-  MoreVertical,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { CueSheet } from "./cue-sheet";
+import { CreateRouteDialog } from "@/features/routes/components/create-route-dialog";
 import { Cue } from "@/types/route";
+import { ChevronLeft, ChevronRight, MoreVertical, Upload } from "lucide-react";
+import { CueSheet } from "./cue-sheet";
 
 type RouteCreationSidebarProps = {
   cue: Cue[];
   routeName: string;
-  onSave: () => void;
+  onRouteNameChange: (name: string) => void;
   onImport: () => void;
   isCollapsed: boolean;
   onCollapsedChange: (collapsed: boolean) => void;
+  routeInfo: {
+    distance: number;
+    duration: number;
+    elevationGain: number;
+    elevationLoss: number;
+    pathGeom: string;
+    firstPoint: string;
+    lastPoint: string;
+  } | null;
 };
 
 export function RouteCreationSidebar({
   cue,
   routeName,
-  onSave,
+  onRouteNameChange,
   onImport,
   isCollapsed,
   onCollapsedChange,
+  routeInfo,
 }: RouteCreationSidebarProps) {
   if (isCollapsed) {
     return (
@@ -51,6 +55,7 @@ export function RouteCreationSidebar({
           <h2 className="text-lg font-semibold">ルート</h2>
           <div className="flex gap-2 mt-3">
             <Button
+              type="button"
               variant="outline"
               size="sm"
               className="flex-1 bg-transparent"
@@ -59,10 +64,6 @@ export function RouteCreationSidebar({
               <Upload className="h-4 w-4 mr-1" />
               インポート
             </Button>
-            {/* <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-              <Plus className="h-4 w-4 mr-1" />
-              新規追加
-            </Button> */}
           </div>
         </div>
 
@@ -73,9 +74,15 @@ export function RouteCreationSidebar({
               <Input
                 placeholder="名前のないルート"
                 value={routeName}
+                onChange={(e) => onRouteNameChange(e.target.value)}
                 className="text-sm h-9 flex-1"
               />
-              <Button variant="ghost" size="icon" className="h-9 w-9 ml-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 ml-2"
+              >
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </div>
@@ -134,6 +141,7 @@ export function RouteCreationSidebar({
             <h3 className="text-sm font-semibold">キューシート</h3>
             <CueSheet cues={cue} />
             <Button
+              type="button"
               variant="outline"
               size="sm"
               className="w-full bg-transparent"
@@ -145,15 +153,11 @@ export function RouteCreationSidebar({
 
         {/* Fixed Footer with Save Button */}
         <div className="p-4 border-t">
-          <Button
-            onClick={onSave}
-            className="w-full bg-[#ff6b00] hover:bg-[#ff6b00]/90 text-white font-medium h-11"
-          >
-            保存
-          </Button>
+          <CreateRouteDialog routeName={routeName} routeInfo={routeInfo} />
         </div>
 
         <Button
+          type="button"
           size="icon"
           onClick={() => onCollapsedChange(true)}
           className="absolute top-20 -right-7 h-10 w-6 rounded-l-none bg-white z-10"

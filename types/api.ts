@@ -465,6 +465,18 @@ export interface components {
             /** @example Bad Request */
             msg?: string;
         };
+        "route.CoursePointRequest": {
+            bearing_after?: number;
+            bearing_before?: number;
+            cum_dist_m?: number;
+            duration?: number;
+            instruction?: string;
+            location: string;
+            maneuver_type?: string;
+            modifier?: string;
+            road_name?: string;
+            seg_dist_m?: number;
+        };
         "route.CoursePointResponse": {
             bearing_after?: number;
             bearing_before?: number;
@@ -479,7 +491,21 @@ export interface components {
             seg_dist_m?: number;
             step_order?: number;
         };
-        "route.CreateRouteRequest": Record<string, never>;
+        "route.CreateRouteRequest": {
+            course_points?: components["schemas"]["route.CoursePointRequest"][];
+            description?: string;
+            distance: number;
+            duration: number;
+            elevation_gain?: number;
+            elevation_loss?: number;
+            first_point: string;
+            highlighted_photo_id?: number;
+            last_point: string;
+            name: string;
+            path_geom: string;
+            visibility: number;
+            waypoints?: components["schemas"]["route.WaypointRequest"][];
+        };
         "route.RouteListResponse": {
             routes?: components["schemas"]["route.RouteResponseModel"][];
         };
@@ -507,7 +533,24 @@ export interface components {
             visibility?: number;
             waypoints?: components["schemas"]["route.WaypointResponse"][];
         };
-        "route.UpdateRouteRequest": Record<string, never>;
+        "route.UpdateRouteRequest": {
+            course_points?: components["schemas"]["route.CoursePointRequest"][];
+            description?: string;
+            distance: number;
+            duration: number;
+            elevation_gain?: number;
+            elevation_loss?: number;
+            first_point: string;
+            highlighted_photo_id?: number;
+            last_point: string;
+            name: string;
+            path_geom: string;
+            visibility: number;
+            waypoints?: components["schemas"]["route.WaypointRequest"][];
+        };
+        "route.WaypointRequest": {
+            location: string;
+        };
         "route.WaypointResponse": {
             id?: string;
             location?: string;

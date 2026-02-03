@@ -1,23 +1,15 @@
 "use client";
 
-import React, {
-  useRef,
-  useState,
-  useCallback,
-  useMemo,
-  use,
-  useEffect,
-} from "react";
-import { useMap } from "react-map-gl/maplibre";
-import Map, { MapRef as MapLibreMapRef } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { useCallback, useMemo, useRef, useState } from "react";
+import Map, { MapRef as MapLibreMapRef, useMap } from "react-map-gl/maplibre";
 
+import { useDirections } from "@/hooks/useDirections";
+import { useMapboxSearch } from "@/hooks/useMapboxSearch";
+import { Cue, LngLat } from "@/types/route";
+import { ErrorBoundary } from "./error-boundary";
 import { RouteCreationSidebar } from "./route-creation-sidebar";
 import { RouteCreationToolbar } from "./route-creation-toolbar";
-import { ErrorBoundary } from "./error-boundary";
-import { useMapboxSearch } from "@/hooks/useMapboxSearch";
-import { useDirections } from "@/hooks/useDirections";
-import { LngLat, Cue } from "@/types/route";
 
 const TOKYO_STATION: LngLat = [139.767, 35.681];
 const INITIAL_VIEW = {
@@ -54,15 +46,20 @@ export const RoutePlanner = () => {
   });
 
   // Directions management
-  const { waypoints, addWaypoint, clearWaypoints, undoLastWaypoint } =
-    useDirections({
-      map: nativeMap,
-      profile: "mapbox/cycling",
-      onRouteChange: useCallback((newCues: Cue[]) => {
-        setCues(newCues);
-        console.log("Route updated:", newCues);
-      }, []),
-    });
+  const {
+    waypoints,
+    routeInfo,
+    addWaypoint,
+    clearWaypoints,
+    undoLastWaypoint,
+  } = useDirections({
+    map: nativeMap,
+    profile: "mapbox/cycling",
+    onRouteChange: useCallback((newCues: Cue[]) => {
+      setCues(newCues);
+      console.log("Route updated:", newCues);
+    }, []),
+  });
 
   // Event handlers
   const handlePickSuggestion = useCallback(
@@ -86,15 +83,6 @@ export const RoutePlanner = () => {
     setCues([]);
   }, [clearWaypoints, clearSuggestions, setQuery]);
 
-  const handleSave = useCallback(() => {
-    console.log("Saving route:", {
-      name: routeName,
-      waypoints,
-      cues,
-    });
-    // TODO: Implement API call to save route
-  }, [routeName, waypoints, cues]);
-
   const handleImport = useCallback(() => {
     console.log("Import not yet implemented");
     // TODO: Implement route import functionality
@@ -113,10 +101,11 @@ export const RoutePlanner = () => {
         <RouteCreationSidebar
           cue={cues}
           routeName={routeName}
-          onSave={handleSave}
+          onRouteNameChange={setRouteName}
           onImport={handleImport}
           isCollapsed={isSidebarCollapsed}
           onCollapsedChange={setIsSidebarCollapsed}
+          routeInfo={routeInfo}
         />
 
         <Map
