@@ -10,7 +10,7 @@ export const createRouteSchema = z.object({
   pathGeom: z.string().min(1, "ルートのジオメトリが必要です"),
   firstPoint: z.string().min(1, "開始地点が必要です"),
   lastPoint: z.string().min(1, "終了地点が必要です"),
-  visibility: z.number().int().min(0).max(2),
+  visibility: z.coerce.number().int().min(0).max(2),
   coursePoints: z.string().optional(),
   waypoints: z.string().optional(),
 });
