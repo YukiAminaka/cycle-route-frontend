@@ -1,104 +1,93 @@
-/**
- * Route and navigation related type definitions
- */
-export type RoutePoint = {
-  id: string;
-  lat: number;
-  lng: number;
-  elevation?: number;
-};
+// 基本的な座標タイプ [経度, 緯度]
+export type Coordinate = [number, number];
 
-export type Route = {
-  id: string;
-  name: string;
-  points: RoutePoint[];
-  distance: number;
-  elevationGain: number;
-  createdAt: Date;
-};
+// ジオメトリ情報
+export interface Geometry {
+  coordinates: Coordinate[];
+  type: "LineString";
+}
 
-export type LngLat = [number, number];
+// 交差点の詳細情報
+export interface Intersection {
+  entry: boolean[];
+  bearings: number[];
+  duration?: number;
+  mapbox_streets_v8?: {
+    class: string;
+  };
+  is_urban?: boolean;
+  admin_index: number;
+  out?: number; // 出口インデックス（存在しない場合がある）
+  weight?: number;
+  geometry_index: number;
+  location: Coordinate;
+  in?: number; // 入口インデックス（始点にはない）
+  turn_weight?: number;
+  turn_duration?: number;
+  traffic_signal?: boolean; // 信号機の有無
+}
 
+// 進行方向の指示 (Maneuver)
 export interface Maneuver {
-  type?: string;
-  modifier?: string;
-  location?: LngLat;
+  type: string; // "depart", "turn", "arrive" など
+  instruction: string;
+  bearing_after: number;
+  bearing_before: number;
+  location: Coordinate;
+  modifier?: string; // "left", "right" など（departにはない場合がある）
 }
 
-export interface Cue {
-  order: number;
-  road: string;
-  distance_m: number;
-  duration_s: number;
+// ルートの各ステップ（曲がり角など）
+export interface RouteStep {
+  intersections: Intersection[];
   maneuver: Maneuver;
-  geometry?: GeoJSON.LineString;
-}
-
-export interface Suggestion {
   name: string;
-  context: string;
-  mapbox_id: string;
+  duration: number;
+  distance: number;
+  driving_side: string; // "left" | "right"
+  weight: number;
+  mode: string; // "cycling", "driving" など
+  geometry: Geometry;
 }
 
-export interface MapboxFeature {
-  properties?: {
-    name?: string;
-    place_formatted?: string;
-    routable_points?: Array<{
-      point?: LngLat;
-    }>;
-  };
-  geometry?: {
-    coordinates?: LngLat;
-  };
+// 行政区画情報
+export interface Admin {
+  iso_3166_1_alpha3: string;
+  iso_3166_1: string;
 }
 
-export interface MapboxRetrieveResult {
-  coord?: LngLat;
-  label: string;
+// ルートの区間 (Leg) - 出発地から目的地（または経由地）まで
+export interface RouteLeg {
+  via_waypoints: any[]; // 具体的なデータがないため any[] としていますが、必要に応じて定義してください
+  admins: Admin[];
+  weight: number;
+  duration: number;
+  steps: RouteStep[];
+  distance: number;
+  summary: string;
 }
 
-export interface MapboxSuggestOptions {
-  proximity?: LngLat;
-  country?: string;
-  language?: string;
-  limit?: number;
-  types?: string;
+// ルート本体
+export interface Route {
+  weight_name: string;
+  weight: number;
+  duration: number;
+  distance: number;
+  legs: RouteLeg[];
+  geometry: Geometry;
 }
 
-export interface DirectionsRoute {
-  legs?: Array<{
-    steps?: DirectionsStep[];
-  }>;
-  geometry?: GeoJSON.LineString;
-  distance?: number;
-  duration?: number;
+// 経由地・目的地のスナップ情報
+export interface Waypoint {
+  distance: number;
+  name: string;
+  location: Coordinate;
 }
 
-export interface DirectionsStep {
-  name?: string;
-  distance?: number;
-  duration?: number;
-  maneuver?: {
-    type?: string;
-    modifier?: string;
-    location?: LngLat;
-  };
-  geometry?: GeoJSON.LineString;
-}
-
+// ルート検索レスポンス全体（ルートオブジェクト）
 export interface DirectionsResponse {
-  routes?: DirectionsRoute[];
-  code?: string;
-  message?: string;
+  routes: Route[];
+  waypoints: Waypoint[];
+  code: string;
+  uuid: string;
 }
-
-export type modifierType =
-  | "uturn"
-  | "sharp right"
-  | "right"
-  | "slight right"
-  | "straight"
-  | "slight left"
-  | "left"
-  | "sharp left";

@@ -3,12 +3,13 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CreateRouteDialog } from "@/features/routes/components/create-route-dialog";
-import { Cue } from "@/types/route";
+import { components } from "@/types/api";
 import { ChevronLeft, ChevronRight, MoreVertical, Upload } from "lucide-react";
 import { CueSheet } from "./cue-sheet";
+type CoursePointRequest = components["schemas"]["route.CoursePointRequest"];
 
 type RouteCreationSidebarProps = {
-  cue: Cue[];
+  cue: CoursePointRequest[];
   routeName: string;
   onRouteNameChange: (name: string) => void;
   onImport: () => void;

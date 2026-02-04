@@ -6,12 +6,15 @@ import Map, { MapRef as MapLibreMapRef, useMap } from "react-map-gl/maplibre";
 
 import { useDirections } from "@/hooks/useDirections";
 import { useMapboxSearch } from "@/hooks/useMapboxSearch";
-import { Cue, LngLat } from "@/types/route";
+import { components } from "@/types/api";
+import { Coordinate } from "@/types/route";
 import { ErrorBoundary } from "./error-boundary";
 import { RouteCreationSidebar } from "./route-creation-sidebar";
 import { RouteCreationToolbar } from "./route-creation-toolbar";
 
-const TOKYO_STATION: LngLat = [139.767, 35.681];
+type CoursePointRequest = components["schemas"]["route.CoursePointRequest"];
+
+const TOKYO_STATION: Coordinate = [139.767, 35.681];
 const INITIAL_VIEW = {
   longitude: 139.753,
   latitude: 35.6844,
@@ -27,7 +30,7 @@ export const RoutePlanner = () => {
   const [routeName, setRouteName] = useState("");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
-  const [cues, setCues] = useState<Cue[]>([]);
+  const [cues, setCues] = useState<CoursePointRequest[]>([]);
 
   // Mapbox search integration
   const {
@@ -55,7 +58,7 @@ export const RoutePlanner = () => {
   } = useDirections({
     map: nativeMap,
     profile: "mapbox/cycling",
-    onRouteChange: useCallback((newCues: Cue[]) => {
+    onRouteChange: useCallback((newCues: CoursePointRequest[]) => {
       setCues(newCues);
       console.log("Route updated:", newCues);
     }, []),

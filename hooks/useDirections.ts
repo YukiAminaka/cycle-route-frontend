@@ -1,20 +1,17 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import type { components } from "@/types/api";
+import { Coordinate, DirectionsResponse, Route } from "@/types/route";
 import MapLibreGlDirections, {
   LoadingIndicatorControl,
   MapLibreGlDirectionsRoutingEvent,
 } from "@maplibre/maplibre-gl-directions";
 import { Map as MapLibreMap } from "maplibre-gl";
-import {
-  LngLat,
-  Cue,
-  DirectionsResponse,
-  DirectionsRoute,
-} from "@/types/route";
+import { useCallback, useEffect, useRef, useState } from "react";
 
+type CoursePointRequest = components["schemas"]["route.CoursePointRequest"];
 interface UseDirectionsOptions {
   map: MapLibreMap | null | undefined;
   profile?: "mapbox/driving" | "mapbox/walking" | "mapbox/cycling";
-  onRouteChange?: (cues: Cue[]) => void;
+  onRouteChange?: (cues: CoursePointRequest[]) => void;
 }
 
 interface RouteInfo {
@@ -28,9 +25,9 @@ interface RouteInfo {
 }
 
 interface UseDirectionsResult {
-  waypoints: LngLat[];
+  waypoints: Coordinate[];
   routeInfo: RouteInfo | null;
-  addWaypoint: (coord: LngLat) => void;
+  addWaypoint: (coord: Coordinate) => void;
   removeWaypoint: (index: number) => void;
   clearWaypoints: () => void;
   undoLastWaypoint: () => void;
@@ -47,7 +44,7 @@ export function useDirections({
   onRouteChange,
 }: UseDirectionsOptions): UseDirectionsResult {
   const directionsRef = useRef<MapLibreGlDirections | null>(null);
-  const [waypoints, setWaypoints] = useState<LngLat[]>([]);
+  const [waypoints, setWaypoints] = useState<Coordinate[]>([]);
   const [isReady, setIsReady] = useState(false);
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
 
@@ -81,24 +78,35 @@ export function useDirections({
 
       const handleRouteEnd = (event: MapLibreGlDirectionsRoutingEvent) => {
         const response = event?.data as DirectionsResponse | undefined;
-        const route: DirectionsRoute | undefined = response?.routes?.[0];
+        const route: Route | undefined = response?.routes?.[0];
 
         if (!route) return;
 
         // Extract cue sheet from route steps
         const steps = (route.legs ?? []).flatMap((leg) => leg.steps ?? []);
-        const cues: Cue[] = steps.map((step, index) => ({
-          order: index,
-          road: step.name ?? "",
-          distance_m: step.distance ?? 0,
-          duration_s: step.duration ?? 0,
-          maneuver: {
-            type: step.maneuver?.type,
+        let cumDistM = 0;
+        const coursePoints: CoursePointRequest[] = steps.map((step) => {
+          const segDistM = step.distance ?? 0;
+          cumDistM += segDistM;
+          const maneuverLocation = step.maneuver?.location;
+          return {
+            location: maneuverLocation
+              ? JSON.stringify({
+                  type: "Point",
+                  coordinates: maneuverLocation,
+                })
+              : "",
+            road_name: step.name ?? "",
+            seg_dist_m: segDistM,
+            cum_dist_m: cumDistM,
+            duration: step.duration ?? 0,
+            maneuver_type: step.maneuver?.type,
             modifier: step.maneuver?.modifier,
-            location: step.maneuver?.location,
-          },
-          geometry: step.geometry,
-        }));
+            bearing_after: step.maneuver?.bearing_after,
+            bearing_before: step.maneuver?.bearing_before,
+            instruction: step.maneuver?.instruction,
+          };
+        });
 
         // Calculate elevation gain and loss from steps
         let elevationGain = 0;
@@ -133,7 +141,7 @@ export function useDirections({
         setRouteInfo(newRouteInfo);
 
         if (onRouteChange) {
-          onRouteChange(cues);
+          onRouteChange(coursePoints);
         }
       };
 
@@ -156,7 +164,7 @@ export function useDirections({
     }
   }, [map, profile, onRouteChange]);
 
-  const addWaypoint = useCallback((coord: LngLat) => {
+  const addWaypoint = useCallback((coord: Coordinate) => {
     const directions = directionsRef.current;
     if (!directions) return;
 

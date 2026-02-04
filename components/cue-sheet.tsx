@@ -1,25 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { components } from "@/types/api";
 import {
-  ChevronDown,
-  ChevronUp,
-  Play,
-  Square,
+  ArrowDownRight,
   ArrowRight,
   ArrowUpRight,
-  ArrowDownRight,
-  CornerUpRight,
+  ChevronDown,
+  ChevronUp,
   CornerDownRight,
-  MoveUp,
-  RotateCcw,
+  CornerUpRight,
   Flag,
+  MoveUp,
+  Play,
+  RotateCcw,
+  Square,
 } from "lucide-react";
-import { Cue } from "@/types/route";
-import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 
+type CoursePointRequest = components["schemas"]["route.CoursePointRequest"];
 interface CueSheetProps {
-  cues: Cue[];
+  cues: CoursePointRequest[];
   routeName?: string;
   totalDistance?: number;
   totalDuration?: number;
@@ -28,13 +29,11 @@ interface CueSheetProps {
 /**
  * Get icon component based on maneuver type and modifier
  */
-const getManeuverIcon = (maneuver?: { type?: string; modifier?: string }) => {
-  if (!maneuver?.type) return <ArrowRight className="h-5 w-5" />;
-
-  const { type, modifier } = maneuver;
+const getManeuverIcon = (maneuver_type?: string, modifier?: string) => {
+  if (!maneuver_type) return <ArrowRight className="h-5 w-5" />;
 
   // Handle different maneuver types
-  switch (type) {
+  switch (maneuver_type) {
     case "depart":
       return <Flag className="h-5 w-5 text-green-600" />;
     case "arrive":
@@ -66,15 +65,10 @@ const getManeuverIcon = (maneuver?: { type?: string; modifier?: string }) => {
 /**
  * Get Japanese instruction text based on maneuver
  */
-const getManeuverText = (maneuver?: {
-  type?: string;
-  modifier?: string;
-}): string => {
-  if (!maneuver?.type) return "直進";
+const getManeuverText = (maneuver_type?: string, modifier?: string): string => {
+  if (!maneuver_type) return "直進";
 
-  const { type, modifier } = maneuver;
-
-  switch (type) {
+  switch (maneuver_type) {
     case "depart":
       return "出発";
     case "arrive":
@@ -130,8 +124,13 @@ const formatDuration = (seconds: number): string => {
 /**
  * Calculate cumulative distance up to a specific cue
  */
-const getCumulativeDistance = (cues: Cue[], index: number): number => {
-  return cues.slice(0, index + 1).reduce((sum, cue) => sum + cue.distance_m, 0);
+const getCumulativeDistance = (
+  cues: CoursePointRequest[],
+  index: number
+): number => {
+  return cues
+    .slice(0, index + 1)
+    .reduce((sum, cue) => sum + (cue.seg_dist_m ?? 0), 0);
 };
 
 export function CueSheet({
@@ -143,9 +142,9 @@ export function CueSheet({
 
   // Calculate totals if not provided
   const calcTotalDistance =
-    totalDistance ?? cues.reduce((sum, cue) => sum + cue.distance_m, 0);
+    totalDistance ?? cues.reduce((sum, cue) => sum + (cue.seg_dist_m ?? 0), 0);
   const calcTotalDuration =
-    totalDuration ?? cues.reduce((sum, cue) => sum + cue.duration_s, 0);
+    totalDuration ?? cues.reduce((sum, cue) => sum + (cue.duration ?? 0), 0);
 
   return (
     <div className="rounded-lg border bg-card shadow-sm max-w-70">
@@ -178,16 +177,18 @@ export function CueSheet({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-foreground">
-                    {getManeuverText(cues[0].maneuver)}
+                    {/* {getManeuverText(cues[0].maneuver_type, cues[0].modifier)} */}
+                    ルート始点
                   </div>
-                  {cues[0].road && (
+                  {cues[0].road_name && (
                     <div className="text-xs text-muted-foreground">
-                      {cues[0].road}
+                      {/* {cues[0].road_name} */}
                     </div>
                   )}
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  {formatDistance(getCumulativeDistance(cues, 0))}
+                  {/* {formatDistance(getCumulativeDistance(cues, 0))} */}
+                  0.0km
                 </span>
               </div>
             )}
@@ -211,17 +212,20 @@ export function CueSheet({
 
                 {isExpanded && (
                   <div className="space-y-0">
-                    {cues.slice(1, -1).map((cue, idx) => {
+                    {cues.slice(0, -2).map((cue, idx) => {
                       const actualIndex = idx + 1;
                       const cumulativeDistance = getCumulativeDistance(
                         cues,
                         actualIndex
                       );
-                      const Icon = getManeuverIcon(cue.maneuver);
+                      const Icon = getManeuverIcon(
+                        cue.maneuver_type,
+                        cue.modifier
+                      );
 
                       return (
                         <div
-                          key={cue.order}
+                          key={idx}
                           className="flex items-center gap-3 px-4 py-3 border-b hover:bg-muted/50 transition-colors"
                         >
                           <div className="flex h-8 w-8 items-center justify-center rounded bg-muted text-foreground">
@@ -229,11 +233,11 @@ export function CueSheet({
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="text-sm text-foreground">
-                              {getManeuverText(cue.maneuver)}
+                              {getManeuverText(cue.maneuver_type, cue.modifier)}
                             </div>
-                            {cue.road && (
+                            {cue.road_name && (
                               <div className="text-xs text-muted-foreground">
-                                {cue.road}
+                                {cue.road_name}
                               </div>
                             )}
                           </div>
@@ -241,9 +245,9 @@ export function CueSheet({
                             <div className="text-sm text-muted-foreground">
                               {formatDistance(cumulativeDistance)}
                             </div>
-                            {cue.distance_m > 0 && (
+                            {cue.seg_dist_m && cue.seg_dist_m > 0 && (
                               <div className="text-xs text-muted-foreground">
-                                +{formatDistance(cue.distance_m)}
+                                +{formatDistance(cue.seg_dist_m ?? 0)}
                               </div>
                             )}
                           </div>
@@ -263,13 +267,17 @@ export function CueSheet({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-foreground">
-                    {getManeuverText(cues[cues.length - 1].maneuver)}
+                    {/* {getManeuverText(
+                      cues[cues.length - 1]?.maneuver_type,
+                      cues[cues.length - 1]?.modifier
+                    )} */}
+                    ルート終点
                   </div>
-                  {cues[cues.length - 1].road && (
+                  {/* {cues[cues.length - 1]?.road_name && (
                     <div className="text-xs text-muted-foreground">
-                      {cues[cues.length - 1].road}
+                      {cues[cues.length - 1]?.road_name}
                     </div>
-                  )}
+                  )} */}
                 </div>
                 <span className="text-sm text-muted-foreground">
                   {formatDistance(getCumulativeDistance(cues, cues.length - 1))}
