@@ -6,13 +6,11 @@ import Map, { MapRef as MapLibreMapRef, useMap } from "react-map-gl/maplibre";
 
 import { useDirections } from "@/hooks/useDirections";
 import { useMapboxSearch } from "@/hooks/useMapboxSearch";
-import { components } from "@/types/api";
+import { CoursePointRequest, WaypointRequest } from "@/types/api";
 import { Coordinate } from "@/types/route";
 import { ErrorBoundary } from "./error-boundary";
 import { RouteCreationSidebar } from "./route-creation-sidebar";
 import { RouteCreationToolbar } from "./route-creation-toolbar";
-
-type CoursePointRequest = components["schemas"]["route.CoursePointRequest"];
 
 const TOKYO_STATION: Coordinate = [139.767, 35.681];
 const INITIAL_VIEW = {
@@ -60,9 +58,17 @@ export const RoutePlanner = () => {
     profile: "mapbox/cycling",
     onRouteChange: useCallback((newCues: CoursePointRequest[]) => {
       setCues(newCues);
-      console.log("Route updated:", newCues);
     }, []),
   });
+
+  // Convert waypoints to WaypointRequest format for API
+  const waypointRequests: WaypointRequest[] = useMemo(
+    () =>
+      waypoints.map((coord) => ({
+        location: JSON.stringify({ type: "Point", coordinates: coord }),
+      })),
+    [waypoints]
+  );
 
   // Event handlers
   const handlePickSuggestion = useCallback(
@@ -103,6 +109,7 @@ export const RoutePlanner = () => {
       <div className="relative h-full w-full flex">
         <RouteCreationSidebar
           cue={cues}
+          waypoints={waypointRequests}
           routeName={routeName}
           onRouteNameChange={setRouteName}
           onImport={handleImport}

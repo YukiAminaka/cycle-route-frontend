@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { components } from "@/types/api";
+import { CoursePointRequest } from "@/types/api";
 import {
   ArrowDownRight,
   ArrowRight,
@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-type CoursePointRequest = components["schemas"]["route.CoursePointRequest"];
 interface CueSheetProps {
   cues: CoursePointRequest[];
   routeName?: string;

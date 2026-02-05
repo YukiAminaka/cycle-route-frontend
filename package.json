@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "openapi:generate": "openapi-typescript ./backend/docs/openapi3/swagger.yaml -o ./types/api.ts",
+    "openapi:generate": "openapi-typescript ./backend/docs/openapi3/swagger.yaml -o ./types/api.d.ts",
     "openapi:update": "git submodule update --remote && pnpm openapi:generate"
   },
   "dependencies": {

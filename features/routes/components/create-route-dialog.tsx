@@ -19,40 +19,70 @@ import { createRoute } from "@/features/routes/actions/create-route";
 import { useForm } from "@conform-to/react";
 import { getZodConstraint, parseWithZod } from "@conform-to/zod";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { createRouteSchema } from "../types/schema";
+import {
+  coursePointsType,
+  createRouteFormSchema,
+  waypointsType,
+} from "../types/schema";
 
 interface CreateRouteDialogProps {
   routeName: string;
+  waypoints: waypointsType;
+  coursePoints: coursePointsType;
   routeInfo: {
     distance: number;
     duration: number;
-    elevationGain: number;
-    elevationLoss: number;
-    pathGeom: string;
-    firstPoint: string;
-    lastPoint: string;
+    elevation_gain: number;
+    elevation_loss: number;
+    path_geom: string;
+    first_point: string;
+    last_point: string;
   } | null;
 }
 
 export function CreateRouteDialog({
   routeName,
+  waypoints,
+  coursePoints,
   routeInfo,
 }: CreateRouteDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
+  // 追加引数をbindしたactionを作成
+  const boundCreateRoute = useMemo(() => {
+    const defaultRouteInfo = {
+      distance: 0,
+      duration: 0,
+      elevation_gain: 0,
+      elevation_loss: 0,
+      path_geom: "",
+      first_point: "",
+      last_point: "",
+    };
+    return createRoute.bind(
+      null,
+      waypoints,
+      coursePoints,
+      routeInfo ?? defaultRouteInfo
+    );
+  }, [waypoints, coursePoints, routeInfo]);
+
   // useActionState を使って Action を接続
-  const [lastResult, action, isPending] = useActionState(createRoute, null);
+  const [lastResult, action, isPending] = useActionState(
+    boundCreateRoute,
+    null
+  );
 
   // useForm を使ってフォーム状態を管理
   const [form, fields] = useForm({
-    constraint: getZodConstraint(createRouteSchema), // zodのスキーマに応じてConformがHTMLのバリデーション属性を自動的に付与してくれるオプション
+    constraint: getZodConstraint(createRouteFormSchema), // zodのスキーマに応じてConformがHTMLのバリデーション属性を自動的に付与してくれるオプション
     lastResult, // server actionsの結果が返却される
     // クライアント側でのバリデーションをする
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: createRouteSchema });
+      return parseWithZod(formData, { schema: createRouteFormSchema });
     },
     shouldValidate: "onBlur",
     shouldRevalidate: "onInput",
@@ -66,7 +96,8 @@ export function CreateRouteDialog({
       router.push("/dashboard");
     } else if (lastResult?.status === "error") {
       // エラー時はトーストでエラーメッセージを表示（ダイアログは閉じない）
-      const errorMessage = form.errors?.[0] || "ルートの保存中にエラーが発生しました";
+      const errorMessage =
+        form.errors?.[0] || "ルートの保存中にエラーが発生しました";
       toast.error(errorMessage);
     }
   }, [lastResult, form.errors, router]);
@@ -95,15 +126,13 @@ export function CreateRouteDialog({
               <Label htmlFor="routeName">タイトル</Label>
               <Input
                 id="routeName"
-                name="routeName"
-                key={fields.routeName.key}
+                name="name"
+                key={fields.name.key}
                 defaultValue={routeName}
-                aria-invalid={!!fields.routeName.errors}
+                aria-invalid={!!fields.name.errors}
               />
-              {fields.routeName.errors && (
-                <p className="text-sm text-red-500">
-                  {fields.routeName.errors[0]}
-                </p>
+              {fields.name.errors && (
+                <p className="text-sm text-red-500">{fields.name.errors[0]}</p>
               )}
             </Field>
             <Field>
@@ -147,43 +176,6 @@ export function CreateRouteDialog({
                 key={fields.description.key}
               />
             </Field>
-
-            {/* Hidden fields for route data */}
-            <input
-              type="hidden"
-              name="distance"
-              value={routeInfo?.distance ?? 0}
-            />
-            <input
-              type="hidden"
-              name="duration"
-              value={routeInfo?.duration ?? 0}
-            />
-            <input
-              type="hidden"
-              name="elevationGain"
-              value={routeInfo?.elevationGain ?? 0}
-            />
-            <input
-              type="hidden"
-              name="elevationLoss"
-              value={routeInfo?.elevationLoss ?? 0}
-            />
-            <input
-              type="hidden"
-              name="pathGeom"
-              value={routeInfo?.pathGeom ?? ""}
-            />
-            <input
-              type="hidden"
-              name="firstPoint"
-              value={routeInfo?.firstPoint ?? ""}
-            />
-            <input
-              type="hidden"
-              name="lastPoint"
-              value={routeInfo?.lastPoint ?? ""}
-            />
           </FieldGroup>
 
           {form.errors && (
@@ -191,7 +183,11 @@ export function CreateRouteDialog({
           )}
 
           <DialogFooter className="mt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
               キャンセル
             </Button>
             <Button type="submit" disabled={isPending || !routeInfo}>

@@ -1,4 +1,4 @@
-import type { components } from "@/types/api";
+import type { CoursePointRequest } from "@/types/api";
 import { Coordinate, DirectionsResponse, Route } from "@/types/route";
 import MapLibreGlDirections, {
   LoadingIndicatorControl,
@@ -7,7 +7,6 @@ import MapLibreGlDirections, {
 import { Map as MapLibreMap } from "maplibre-gl";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-type CoursePointRequest = components["schemas"]["route.CoursePointRequest"];
 interface UseDirectionsOptions {
   map: MapLibreMap | null | undefined;
   profile?: "mapbox/driving" | "mapbox/walking" | "mapbox/cycling";
@@ -17,11 +16,11 @@ interface UseDirectionsOptions {
 interface RouteInfo {
   distance: number; // meters
   duration: number; // seconds
-  elevationGain: number; // meters
-  elevationLoss: number; // meters
-  pathGeom: string; // GeoJSON geometry as string
-  firstPoint: string; // GeoJSON point as string
-  lastPoint: string; // GeoJSON point as string
+  elevation_gain: number; // meters
+  elevation_loss: number; // meters
+  path_geom: string; // GeoJSON geometry as string
+  first_point: string; // GeoJSON point as string
+  last_point: string; // GeoJSON point as string
 }
 
 interface UseDirectionsResult {
@@ -109,8 +108,8 @@ export function useDirections({
         });
 
         // Calculate elevation gain and loss from steps
-        let elevationGain = 0;
-        let elevationLoss = 0;
+        let elevation_gain = 0;
+        let elevation_loss = 0;
 
         // Note: Mapbox Directions API doesn't directly provide elevation data in steps
         // You might need to use a separate elevation API or use the route's elevation data if available
@@ -125,14 +124,14 @@ export function useDirections({
         const newRouteInfo: RouteInfo = {
           distance: route.distance ?? 0, // in meters
           duration: route.duration ?? 0, // in seconds
-          elevationGain, // meters
-          elevationLoss, // meters
-          pathGeom: JSON.stringify(route.geometry), // GeoJSON LineString
-          firstPoint: JSON.stringify({
+          elevation_gain, // meters
+          elevation_loss, // meters
+          path_geom: JSON.stringify(route.geometry), // GeoJSON LineString
+          first_point: JSON.stringify({
             type: "Point",
             coordinates: firstPoint,
           }),
-          lastPoint: JSON.stringify({
+          last_point: JSON.stringify({
             type: "Point",
             coordinates: lastPoint,
           }),

@@ -3,13 +3,13 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CreateRouteDialog } from "@/features/routes/components/create-route-dialog";
-import { components } from "@/types/api";
+import { CoursePointRequest, WaypointRequest } from "@/types/api";
 import { ChevronLeft, ChevronRight, MoreVertical, Upload } from "lucide-react";
 import { CueSheet } from "./cue-sheet";
-type CoursePointRequest = components["schemas"]["route.CoursePointRequest"];
 
 type RouteCreationSidebarProps = {
   cue: CoursePointRequest[];
+  waypoints: WaypointRequest[];
   routeName: string;
   onRouteNameChange: (name: string) => void;
   onImport: () => void;
@@ -18,16 +18,17 @@ type RouteCreationSidebarProps = {
   routeInfo: {
     distance: number;
     duration: number;
-    elevationGain: number;
-    elevationLoss: number;
-    pathGeom: string;
-    firstPoint: string;
-    lastPoint: string;
+    elevation_gain: number;
+    elevation_loss: number;
+    path_geom: string;
+    first_point: string;
+    last_point: string;
   } | null;
 };
 
 export function RouteCreationSidebar({
   cue,
+  waypoints,
   routeName,
   onRouteNameChange,
   onImport,
@@ -154,7 +155,12 @@ export function RouteCreationSidebar({
 
         {/* Fixed Footer with Save Button */}
         <div className="p-4 border-t">
-          <CreateRouteDialog routeName={routeName} routeInfo={routeInfo} />
+          <CreateRouteDialog
+            routeName={routeName}
+            waypoints={waypoints}
+            coursePoints={cue}
+            routeInfo={routeInfo}
+          />
         </div>
 
         <Button
