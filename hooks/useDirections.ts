@@ -1,8 +1,8 @@
 import type { CoursePointRequest } from "@/types/api";
-import { Coordinate, DirectionsResponse, Route } from "@/types/route";
+import type { Coordinate, Route } from "@/types/route";
 import MapLibreGlDirections, {
   LoadingIndicatorControl,
-  MapLibreGlDirectionsRoutingEvent,
+  MapLibreGlDirectionsEventType,
 } from "@maplibre/maplibre-gl-directions";
 import { Map as MapLibreMap } from "maplibre-gl";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -75,9 +75,15 @@ export function useDirections({
       directionsRef.current = directions;
       setIsReady(true);
 
-      const handleRouteEnd = (event: MapLibreGlDirectionsRoutingEvent) => {
-        const response = event?.data as DirectionsResponse | undefined;
-        const route: Route | undefined = response?.routes?.[0];
+      // 経路探索は毎回すべてのwaypointが含まれるのでつど追加されず全部をセットするようになっている。
+      const handleRouteEnd = (
+        event: MapLibreGlDirectionsEventType["fetchroutesend"]
+      ) => {
+        const directions = event.data.directions;
+
+        // waypointsを更新
+        setWaypoints(directions?.waypoints?.map((wp) => wp.location) ?? []);
+        const route = directions?.routes?.[0] as Route | undefined;
 
         if (!route) return;
 
@@ -140,6 +146,7 @@ export function useDirections({
         setRouteInfo(newRouteInfo);
 
         if (onRouteChange) {
+          console.log("Course points:", coursePoints);
           onRouteChange(coursePoints);
         }
       };
@@ -166,12 +173,12 @@ export function useDirections({
   const addWaypoint = useCallback((coord: Coordinate) => {
     const directions = directionsRef.current;
     if (!directions) return;
-
-    setWaypoints((prev) => {
-      const newWaypoints = [...prev, coord];
-      directions.addWaypoint(coord, prev.length);
-      return newWaypoints;
-    });
+    directions.addWaypoint(coord);
+    // setWaypoints((prev) => {
+    //   const newWaypoints = [...prev, coord];
+    //   directions.addWaypoint(coord, prev.length);
+    //   return newWaypoints;
+    // });
   }, []);
 
   const removeWaypoint = useCallback((index: number) => {
