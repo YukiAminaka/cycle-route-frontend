@@ -55,7 +55,6 @@ export const RoutePlanner = () => {
     undoLastWaypoint,
   } = useDirections({
     map: nativeMap,
-    profile: "mapbox/cycling",
     onRouteChange: useCallback((newCues: CoursePointRequest[]) => {
       setCues(newCues);
     }, []),

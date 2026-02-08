@@ -1,3 +1,4 @@
+import { useRoutingProfileStore } from "@/features/routes/hooks";
 import type { CoursePointRequest } from "@/types/api";
 import type { Coordinate, Route } from "@/types/route";
 import MapLibreGlDirections, {
@@ -9,7 +10,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseDirectionsOptions {
   map: MapLibreMap | null | undefined;
-  profile?: "mapbox/driving" | "mapbox/walking" | "mapbox/cycling";
   onRouteChange?: (cues: CoursePointRequest[]) => void;
 }
 
@@ -39,13 +39,15 @@ interface UseDirectionsResult {
  */
 export function useDirections({
   map,
-  profile = "mapbox/cycling",
   onRouteChange,
 }: UseDirectionsOptions): UseDirectionsResult {
   const directionsRef = useRef<MapLibreGlDirections | null>(null);
   const [waypoints, setWaypoints] = useState<Coordinate[]>([]);
   const [isReady, setIsReady] = useState(false);
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
+  const profile = useRoutingProfileStore((s) => s.routing_profiles);
+  const profileRef = useRef(profile);
+  const waypointsRef = useRef<Coordinate[]>([]);
 
   // Initialize directions plugin
   useEffect(() => {

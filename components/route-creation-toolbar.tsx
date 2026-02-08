@@ -1,8 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -10,17 +8,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useRoutingProfileStore } from "@/features/routes/hooks";
 import {
-  Undo,
-  Redo,
-  X,
-  MapPin,
   Bike,
-  Footprints,
   Car,
-  Mountain,
-  ChevronRight,
   ChevronLeft,
+  ChevronRight,
+  Footprints,
+  Redo,
+  Undo,
+  X,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -65,9 +62,10 @@ export function RouteCreationToolbar({
   onCollapsedChange,
 }: RouteCreationToolbarProps) {
   const [locationInput, setLocationInput] = useState("");
-  const [routingMode, setRoutingMode] = useState("bike");
   const [roadSurface, setRoadSurface] = useState("paved");
   const [routeColor, setRouteColor] = useState("#ef4444");
+  const profile = useRoutingProfileStore((s) => s.routing_profiles);
+  const setProfile = useRoutingProfileStore((s) => s.setProfile);
 
   const colors = [
     "#ef4444", // red
@@ -203,36 +201,28 @@ export function RouteCreationToolbar({
             <h3 className="text-sm font-semibold">ルーティングモード</h3>
             <div className="flex gap-2">
               <Button
-                variant={routingMode === "bike" ? "default" : "outline"}
+                variant={profile === "mapbox/cycling" ? "default" : "outline"}
                 size="icon"
                 className="h-9 w-9"
-                onClick={() => setRoutingMode("bike")}
+                onClick={() => setProfile("mapbox/cycling")}
               >
                 <Bike className="h-4 w-4" />
               </Button>
               <Button
-                variant={routingMode === "walk" ? "default" : "outline"}
+                variant={profile === "mapbox/walking" ? "default" : "outline"}
                 size="icon"
                 className="h-9 w-9"
-                onClick={() => setRoutingMode("walk")}
+                onClick={() => setProfile("mapbox/walking")}
               >
                 <Footprints className="h-4 w-4" />
               </Button>
               <Button
-                variant={routingMode === "car" ? "default" : "outline"}
+                variant={profile === "mapbox/driving" ? "default" : "outline"}
                 size="icon"
                 className="h-9 w-9"
-                onClick={() => setRoutingMode("car")}
+                onClick={() => setProfile("mapbox/driving")}
               >
                 <Car className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={routingMode === "direct" ? "default" : "outline"}
-                size="icon"
-                className="h-9 w-9"
-                onClick={() => setRoutingMode("direct")}
-              >
-                <Mountain className="h-4 w-4" />
               </Button>
             </div>
             <Select value={roadSurface} onValueChange={setRoadSurface}>
