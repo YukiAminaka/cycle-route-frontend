@@ -88,7 +88,7 @@ export async function createRoute(
     }
 
     // 成功時はsuccessステータスを返す
-    return submission.reply({ resetForm: true });
+    return { ...submission.reply({ resetForm: true }), status: "success" as const };
   } catch (error) {
     // 予期しないエラー（500エラーなど）をキャッチ
     return submission.reply({
