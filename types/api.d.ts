@@ -11,7 +11,73 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** ユーザーのルート一覧を取得する */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Keyword to search in route names */
+                    keyword?: string;
+                    /** @description Minimum distance filter */
+                    min_distance?: string;
+                    /** @description Maximum distance filter */
+                    max_distance?: string;
+                    /** @description Minimum elevation gain filter */
+                    min_elevation?: string;
+                    /** @description Maximum elevation gain filter */
+                    max_elevation?: string;
+                    /** @description Visibility filter */
+                    visibility?: string;
+                    /** @description Author filter */
+                    author?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["route.RouteListResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.ErrorResponse"];
+                    };
+                };
+            };
+        };
         put?: never;
         /** ルートを作成する */
         post: {
@@ -368,67 +434,6 @@ export interface paths {
                 };
                 /** @description Not Found */
                 404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["response.ErrorResponse"];
-                    };
-                };
-                /** @description Internal Server Error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["response.ErrorResponse"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/users/{user_id}/routes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** ユーザーのルート一覧を取得する */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description User ID */
-                    user_id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": Record<string, never>;
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["route.RouteListResponse"];
-                    };
-                };
-                /** @description Bad Request */
-                400: {
                     headers: {
                         [name: string]: unknown;
                     };

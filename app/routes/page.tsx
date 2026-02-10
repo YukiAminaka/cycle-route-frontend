@@ -1,56 +1,8 @@
-"use client";
-
-import { Header } from "@/components/header";
 import { MyRoutes } from "@/components/my-routes";
-import { RouteDetails } from "@/components/route-details";
-import { useState, useEffect } from "react";
-import { getSavedRoutes, deleteRoute } from "@/lib/route-storage";
-import { useRouter } from "next/navigation";
-import type { Route } from "@/types/route";
+import { getServerSession } from "@ory/nextjs/app";
 
-export default function RoutesPage() {
-  const [savedRoutes, setSavedRoutes] = useState<Route[]>([]);
-  const [selectedRouteForDetails, setSelectedRouteForDetails] =
-    useState<Route | null>(null);
-  const router = useRouter();
-
-  useEffect(() => {
-    setSavedRoutes(getSavedRoutes());
-  }, []);
-
-  const handleLoadRoute = (route: Route) => {
-    // Navigate to home page to load the route on the map
-    router.push("/");
-  };
-
-  const handleDeleteRoute = (routeId: string) => {
-    deleteRoute(routeId);
-    setSavedRoutes(getSavedRoutes());
-  };
-
-  const handleViewDetails = (route: Route) => {
-    setSelectedRouteForDetails(route);
-  };
-
-  const handleCreateNew = () => {
-    router.push("/");
-  };
-
-  return (
-    <>
-      <MyRoutes
-        routes={savedRoutes}
-        onLoadRoute={handleLoadRoute}
-        onDeleteRoute={handleDeleteRoute}
-        onViewDetails={handleViewDetails}
-        onCreateNew={handleCreateNew}
-      />
-      {selectedRouteForDetails && (
-        <RouteDetails
-          route={selectedRouteForDetails}
-          onClose={() => setSelectedRouteForDetails(null)}
-        />
-      )}
-    </>
-  );
+export default async function RoutesPage() {
+  const session = await getServerSession();
+  const userId = session?.identity?.id;
+  return <MyRoutes userID={userId} />;
 }

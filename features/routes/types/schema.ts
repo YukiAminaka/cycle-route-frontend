@@ -63,3 +63,34 @@ export const createRouteDetailSchema = z.object({
 });
 
 export type createRouteDetailType = z.infer<typeof createRouteDetailSchema>;
+
+// 作成者フィルター
+export const authorFilter = z.enum(["self", "others", "all"]);
+export type AuthorFilter = z.infer<typeof authorFilter>;
+
+export const searchRouteSchema = z.object({
+  keyword: z
+    .string()
+    .max(100, "キーワードは100文字以内で入力してください")
+    .optional(),
+  distanceMin: z.coerce
+    .number()
+    .min(0, "距離は0以上で入力してください")
+    .optional(),
+  distanceMax: z.coerce
+    .number()
+    .min(0, "距離は0以上で入力してください")
+    .optional(),
+  elevationMin: z.coerce
+    .number()
+    .min(0, "標高は0以上で入力してください")
+    .optional(),
+  elevationMax: z.coerce
+    .number()
+    .min(0, "標高は0以上で入力してください")
+    .optional(),
+  author: authorFilter.default("all"),
+  visibility: z.coerce.number().int().min(0).max(2).default(0),
+});
+
+export type SearchRouteSchema = z.infer<typeof searchRouteSchema>;
