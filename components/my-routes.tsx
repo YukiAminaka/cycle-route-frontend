@@ -8,6 +8,7 @@ import { searchRouteSchema } from "@/features/routes/types/schema";
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
 import { Bike, Clock, Mountain, Search } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useActionState } from "react";
 import { Button } from "./ui/button";
@@ -127,9 +128,30 @@ export function MyRoutes() {
                 onClick={() => handleViewDetails(route.id)}
               >
                 <div className="relative aspect-video bg-muted">
-                  <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                    ルートプレビュー
-                  </div>
+                  {/* {route.thumbnail_polyline ? (
+                    <Image
+                      src={getMapboxStaticImageUrl(route.thumbnail_polyline, {
+                        width: 400,
+                        height: 225,
+                      })}
+                      alt={route.name ?? "ルートプレビュー"}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                      ルートプレビュー
+                    </div>
+                  )} */}
+                  {/* 仮の静的画像URL */}
+                  <Image
+                    src={`https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-s-a+9ed4bd(-122.46589,37.77343),pin-s-b+000(-122.42816,37.75965),path-3+f44-1(%7DrpeFxbnjVsFwdAvr@cHgFor@jEmAlFmEMwM_FuItCkOi@wc@bg@wBSgM)/auto/400x225?access_token=${process.env.NEXT_PUBLIC_MAPBOX_KEY}`}
+                    alt={route.name ?? "ルートプレビュー"}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
                 </div>
                 <CardContent className="p-4">
                   <div className="mb-2 flex items-start justify-between">
