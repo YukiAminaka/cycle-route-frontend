@@ -532,6 +532,7 @@ export interface components {
             last_point?: string;
             name?: string;
             path_geom?: string;
+            polyline?: string;
             updated_at?: string;
             user_id?: string;
             user_name?: string;

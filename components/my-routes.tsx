@@ -5,22 +5,29 @@ import {
   SearchMyRoutesState,
 } from "@/features/routes/actions/search-my-routes";
 import { searchRouteSchema } from "@/features/routes/types/schema";
+import { getMapboxStaticImageUrl } from "@/services/mapbox";
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
 import { Bike, Clock, Mountain, Search } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Input } from "./ui/input";
 
 export function MyRoutes() {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   const [state, action, isPending] = useActionState<
     SearchMyRoutesState | null,
     FormData
   >(searchMyRoutes, null);
+
+  // マウント時に自動的にルート一覧を取得
+  useEffect(() => {
+    formRef.current?.requestSubmit();
+  }, []);
 
   // useForm を使ってフォーム状態を管理
   const [form, fields] = useForm({
@@ -83,7 +90,7 @@ export function MyRoutes() {
         </Button>
 
         {/* 検索フォーム */}
-        <form id={form.id} onSubmit={form.onSubmit} action={action} noValidate>
+        <form ref={formRef} id={form.id} onSubmit={form.onSubmit} action={action} noValidate>
           <div className="mb-6 flex gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -128,11 +135,14 @@ export function MyRoutes() {
                 onClick={() => handleViewDetails(route.id)}
               >
                 <div className="relative aspect-video bg-muted">
-                  {/* {route.thumbnail_polyline ? (
+                  {route.polyline ? (
                     <Image
-                      src={getMapboxStaticImageUrl(route.thumbnail_polyline, {
-                        width: 400,
-                        height: 225,
+                      src={getMapboxStaticImageUrl(route.polyline, {
+                        strokeColor: "F52738",
+                        strokeWidth: 3,
+                        style: "mapbox/streets-v12",
+                        width: 409,
+                        height: 230,
                       })}
                       alt={route.name ?? "ルートプレビュー"}
                       fill
@@ -143,15 +153,7 @@ export function MyRoutes() {
                     <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
                       ルートプレビュー
                     </div>
-                  )} */}
-                  {/* 仮の静的画像URL */}
-                  <Image
-                    src={`https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-s-a+9ed4bd(-122.46589,37.77343),pin-s-b+000(-122.42816,37.75965),path-3+f44-1(%7DrpeFxbnjVsFwdAvr@cHgFor@jEmAlFmEMwM_FuItCkOi@wc@bg@wBSgM)/auto/400x225?access_token=${process.env.NEXT_PUBLIC_MAPBOX_KEY}`}
-                    alt={route.name ?? "ルートプレビュー"}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
+                  )}
                 </div>
                 <CardContent className="p-4">
                   <div className="mb-2 flex items-start justify-between">

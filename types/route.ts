@@ -91,3 +91,35 @@ export interface DirectionsResponse {
   code: string;
   uuid: string;
 }
+
+export interface Suggestion {
+  name: string;
+  context: string;
+  mapbox_id: string;
+}
+
+export interface MapboxFeature {
+  properties?: {
+    name?: string;
+    place_formatted?: string;
+    routable_points?: Array<{
+      point?: Coordinate;
+    }>;
+  };
+  geometry?: {
+    coordinates?: Coordinate;
+  };
+}
+
+export interface MapboxRetrieveResult {
+  coord?: Coordinate;
+  label: string;
+}
+
+export interface MapboxSuggestOptions {
+  proximity?: Coordinate;
+  country?: string;
+  language?: string;
+  limit?: number;
+  types?: string;
+}

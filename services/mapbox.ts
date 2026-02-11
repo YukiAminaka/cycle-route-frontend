@@ -1,8 +1,8 @@
 import {
-  Suggestion,
-  MapboxSuggestOptions,
-  MapboxRetrieveResult,
   MapboxFeature,
+  MapboxRetrieveResult,
+  MapboxSuggestOptions,
+  Suggestion,
 } from "@/types/route";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_KEY;
@@ -20,6 +20,7 @@ export function getMapboxStaticImageUrl(
     width?: number;
     height?: number;
     strokeColor?: string;
+    strokeOpacity?: number;
     strokeWidth?: number;
     padding?: number;
     style?: string;
@@ -31,6 +32,7 @@ export function getMapboxStaticImageUrl(
     width = 400,
     height = 225,
     strokeColor = "3b82f6", // blue-500
+    strokeOpacity = 1,
     strokeWidth = 3,
     padding = 50,
     style = "mapbox/outdoors-v12",
@@ -39,7 +41,7 @@ export function getMapboxStaticImageUrl(
   // Polylineをパスオーバーレイとしてエンコード
   // 形式: path-{strokeWidth}+{strokeColor}({polyline})
   const encodedPolyline = encodeURIComponent(polyline);
-  const pathOverlay = `path-${strokeWidth}+${strokeColor}(${encodedPolyline})`;
+  const pathOverlay = `path-${strokeWidth}+${strokeColor}-${strokeOpacity}(${encodedPolyline})`;
 
   // autoでルート全体が収まるように自動調整
   return `https://api.mapbox.com/styles/v1/${style}/static/${pathOverlay}/auto/${width}x${height}?padding=${padding}&access_token=${token}`;
