@@ -6,7 +6,7 @@ export default async function LandingPage() {
   return (
     <div className="h-full w-full overflow-auto">
       {/* Hero */}
-      <section className="container px-4 py-24 lg:px-6 flex-1 flex items-center justify-center">
+      <section className="container mx-auto px-4 py-24 lg:px-6 flex-1 flex items-center justify-center">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             サイクリングルートを
@@ -31,7 +31,7 @@ export default async function LandingPage() {
 
       {/* Features */}
       <section className="border-t border-border bg-muted/50 py-24">
-        <div className="container px-4 lg:px-6">
+        <div className="container mx-auto px-4 lg:px-6">
           <div className="mx-auto max-w-5xl">
             <h3 className="text-center text-3xl font-bold text-foreground">
               主な機能
@@ -76,7 +76,7 @@ export default async function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="container px-4 py-24 lg:px-6">
+      <section className="container mx-auto px-4 py-24 lg:px-6">
         <div className="mx-auto max-w-3xl text-center">
           <h3 className="text-3xl font-bold text-foreground">
             今すぐ始めましょう
@@ -91,7 +91,7 @@ export default async function LandingPage() {
       </section>
 
       <footer className="border-t border-border bg-card py-8">
-        <div className="container px-4 text-center text-sm text-muted-foreground lg:px-6">
+        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground lg:px-6">
           © 2025 CycleRoute. All rights reserved.
         </div>
       </footer>
