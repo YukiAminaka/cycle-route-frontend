@@ -1,4 +1,5 @@
 import { useRoutingProfileStore } from "@/features/routes/hooks";
+import CustomMapLibreGlDirections from "@/lib/custom-directions";
 import type { CoursePointRequest } from "@/types/api";
 import type { Coordinate, Route } from "@/types/route";
 import MapLibreGlDirections, {
@@ -46,8 +47,6 @@ export function useDirections({
   const [isReady, setIsReady] = useState(false);
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const profile = useRoutingProfileStore((s) => s.routing_profiles);
-  const profileRef = useRef(profile);
-  const waypointsRef = useRef<Coordinate[]>([]);
 
   // Initialize directions plugin
   useEffect(() => {
@@ -60,14 +59,14 @@ export function useDirections({
         directionsRef.current = null;
       }
 
-      const directions = new MapLibreGlDirections(map, {
+      const directions = new CustomMapLibreGlDirections(map, {
         api: "https://api.mapbox.com/directions/v5",
         profile,
         requestOptions: {
           access_token: process.env.NEXT_PUBLIC_MAPBOX_KEY,
           geometries: "geojson",
           steps: "true",
-          alternatives: "true",
+          alternatives: "false", // 代替ルートを返すか
           overview: "full",
         },
       });
@@ -115,13 +114,9 @@ export function useDirections({
           };
         });
 
-        // Calculate elevation gain and loss from steps
+        // todo: 標高データの取得と計算
         let elevation_gain = 0;
         let elevation_loss = 0;
-
-        // Note: Mapbox Directions API doesn't directly provide elevation data in steps
-        // You might need to use a separate elevation API or use the route's elevation data if available
-        // For now, we'll set default values
 
         // Get first and last points from waypoints
         const coordinates = route.geometry?.coordinates ?? [];

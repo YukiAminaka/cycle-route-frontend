@@ -1,8 +1,8 @@
-import RouteDetail from "@/features/routes/components/route-detail";
+import RouteEditer from "@/features/routes/components/route-edit";
 import { getRouteDetail } from "@/features/routes/fetcher/route-detail";
 import { notFound } from "next/navigation";
 
-export default async function RoutePage({
+export default async function RouteEditPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -14,11 +14,5 @@ export default async function RoutePage({
     notFound();
   }
 
-  return (
-    <div className="relative h-full w-full flex">
-      <div className="flex-1 relative">
-        <RouteDetail route={data.route} />
-      </div>
-    </div>
-  );
+  return <RouteEditer route={data.route} />;
 }

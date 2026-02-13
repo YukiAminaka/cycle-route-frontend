@@ -10,7 +10,7 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## openapi-typescript 使用してバックエンドで生成された openapi3.1 から typescript の型を生成する
+### バックエンドで生成された openapi3.1 から typescript の型を生成する
 
 ```
 pnpm openapi:update
