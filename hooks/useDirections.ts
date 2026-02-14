@@ -35,9 +35,7 @@ interface UseDirectionsResult {
   waypoints: Coordinate[];
   routeInfo: RouteInfo | null;
   addWaypoint: (coord: Coordinate) => void;
-  removeWaypoint: (index: number) => void;
   clearWaypoints: () => void;
-  undoLastWaypoint: () => void;
   restoreState: (state: RouteState) => void;
   isReady: boolean;
 }
@@ -240,40 +238,7 @@ export function useDirections({
     const directions = directionsRef.current;
     if (!directions) return;
     directions.addWaypoint(coord);
-    // setWaypoints((prev) => {
-    //   const newWaypoints = [...prev, coord];
-    //   directions.addWaypoint(coord, prev.length);
-    //   return newWaypoints;
-    // });
   }, []);
-
-  const removeWaypoint = useCallback((index: number) => {
-    const directions = directionsRef.current;
-    if (!directions) return;
-
-    setWaypoints((prev) => {
-      const newWaypoints = prev.filter((_, i) => i !== index);
-      directions.removeWaypoint(index);
-      return newWaypoints;
-    });
-  }, []);
-
-  const undoLastWaypoint = useCallback(() => {
-    const directions = directionsRef.current;
-    if (!directions || waypoints.length === 0) return;
-
-    setWaypoints((prev) => {
-      const newWaypoints = prev.slice(0, -1);
-
-      if (newWaypoints.length === 0) {
-        directions.clear();
-      } else {
-        directions.setWaypoints(newWaypoints);
-      }
-
-      return newWaypoints;
-    });
-  }, [waypoints.length]);
 
   // Clear all waypoints
   const clearWaypoints = useCallback(() => {
@@ -305,9 +270,7 @@ export function useDirections({
     waypoints,
     routeInfo,
     addWaypoint,
-    removeWaypoint,
     clearWaypoints,
-    undoLastWaypoint,
     restoreState,
     isReady,
   };
