@@ -1,5 +1,6 @@
 "use client";
 
+import { RouteStateStoreProvider } from "@/features/routes/provider/route-state-provider";
 import { RoutingProfileStoreProvider } from "@/features/routes/provider/routing-profile-provider";
 
 export default function RoutesLayout({
@@ -8,6 +9,8 @@ export default function RoutesLayout({
   children: React.ReactNode;
 }) {
   return (
-    <RoutingProfileStoreProvider>{children}</RoutingProfileStoreProvider>
+    <RouteStateStoreProvider>
+      <RoutingProfileStoreProvider>{children}</RoutingProfileStoreProvider>
+    </RouteStateStoreProvider>
   );
 }

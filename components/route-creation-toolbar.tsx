@@ -38,6 +38,8 @@ type RouteCreationToolbarProps = {
   onClear: () => void;
   onUndo: () => void;
   onRedo: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
   session: Session;
   suggestions: Suggestion[];
   q: string;
@@ -52,6 +54,8 @@ export function RouteCreationToolbar({
   onClear,
   onUndo,
   onRedo,
+  canUndo = true,
+  canRedo = false,
   session,
   suggestions,
   q,
@@ -102,6 +106,7 @@ export function RouteCreationToolbar({
                 size="icon"
                 className="h-8 w-8 bg-transparent"
                 onClick={onUndo}
+                disabled={!canUndo}
               >
                 <Undo className="h-4 w-4" />
               </Button>
@@ -110,6 +115,7 @@ export function RouteCreationToolbar({
                 size="icon"
                 className="h-8 w-8 bg-transparent"
                 onClick={onRedo}
+                disabled={!canRedo}
               >
                 <Redo className="h-4 w-4" />
               </Button>

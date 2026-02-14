@@ -1,9 +1,11 @@
 "use client";
 
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Map, { MapRef as MapLibreMapRef, useMap } from "react-map-gl/maplibre";
 
+import { useRouteStateStore } from "@/features/routes/hooks";
+import type { RouteState } from "@/features/routes/stores/routeStateStore";
 import { useDirections } from "@/hooks/useDirections";
 import { useMapboxSearch } from "@/hooks/useMapboxSearch";
 import { CoursePointRequest, WaypointRequest } from "@/types/api";
@@ -23,12 +25,25 @@ export const RoutePlanner = () => {
   const { map } = useMap();
   const nativeMap = map?.getMap();
   const mapRef = useRef<MapLibreMapRef>(null);
+  const hasRestoredRef = useRef(false);
 
   // Component state
-  const [routeName, setRouteName] = useState("");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
   const [cues, setCues] = useState<CoursePointRequest[]>([]);
+  const [routeName, setRouteName] = useState("");
+
+  // Route state management (undo/redo + localStorage persistence)
+  const routeState = useRouteStateStore((s) => s.present);
+  const past = useRouteStateStore((s) => s.past);
+  const future = useRouteStateStore((s) => s.future);
+  const pushState = useRouteStateStore((s) => s.pushState);
+  const undoState = useRouteStateStore((s) => s.undo);
+  const redoState = useRouteStateStore((s) => s.redo);
+  const clearState = useRouteStateStore((s) => s.clear);
+
+  const canUndo = past.length > 0;
+  const canRedo = future.length > 0;
 
   // Mapbox search integration
   const {
@@ -46,19 +61,53 @@ export const RoutePlanner = () => {
     debounceMs: 160, // デバウンス時間
   });
 
+  // 状態変更時のコールバック
+  const handleStateChange = useCallback(
+    (newState: RouteState) => {
+      pushState(newState);
+    },
+    [pushState]
+  );
+
   // Directions management
   const {
     waypoints,
     routeInfo,
     addWaypoint,
     clearWaypoints,
-    undoLastWaypoint,
+    restoreState,
+    isReady,
   } = useDirections({
     map: nativeMap,
     onRouteChange: useCallback((newCues: CoursePointRequest[]) => {
       setCues(newCues);
     }, []),
+    onStateChange: handleStateChange,
   });
+
+  // Restore state from localStorage on mount
+  useEffect(() => {
+    if (isReady && !hasRestoredRef.current && routeState.waypoints.length > 0) {
+      hasRestoredRef.current = true;
+      restoreState(routeState);
+    }
+  }, [isReady, routeState, restoreState]);
+
+  // Handle undo with map state restoration
+  const handleUndo = useCallback(() => {
+    const newState = undoState();
+    if (newState) {
+      restoreState(newState);
+    }
+  }, [undoState, restoreState]);
+
+  // Handle redo with map state restoration
+  const handleRedo = useCallback(() => {
+    const newState = redoState();
+    if (newState) {
+      restoreState(newState);
+    }
+  }, [redoState, restoreState]);
 
   // Convert waypoints to WaypointRequest format for API
   const waypointRequests: WaypointRequest[] = useMemo(
@@ -87,9 +136,10 @@ export const RoutePlanner = () => {
   const handleClear = useCallback(() => {
     clearWaypoints();
     clearSuggestions();
+    clearState();
     setQuery("");
     setCues([]);
-  }, [clearWaypoints, clearSuggestions, setQuery]);
+  }, [clearWaypoints, clearSuggestions, clearState, setQuery]);
 
   const handleImport = useCallback(() => {
     console.log("Import not yet implemented");
@@ -127,10 +177,10 @@ export const RoutePlanner = () => {
 
         <RouteCreationToolbar
           onClear={handleClear}
-          onUndo={undoLastWaypoint}
-          onRedo={() => {
-            // TODO: Implement redo functionality
-          }}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          canUndo={canUndo}
+          canRedo={canRedo}
           session={{ id: "", renew: () => {} }} // Managed internally by useMapboxSearch
           suggestions={suggestions}
           q={query}

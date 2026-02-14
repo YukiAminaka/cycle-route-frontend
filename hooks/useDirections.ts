@@ -1,8 +1,14 @@
 import { useRoutingProfileStore } from "@/features/routes/hooks";
+import type { RouteState } from "@/features/routes/stores/routeStateStore";
 import CustomMapLibreGlDirections from "@/lib/custom-directions";
 import type { CoursePointRequest } from "@/types/api";
 import type { Coordinate, Route } from "@/types/route";
-import MapLibreGlDirections, {
+import type {
+  Feature,
+  LineString,
+  Point,
+} from "@maplibre/maplibre-gl-directions";
+import {
   LoadingIndicatorControl,
   MapLibreGlDirectionsEventType,
 } from "@maplibre/maplibre-gl-directions";
@@ -12,6 +18,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 interface UseDirectionsOptions {
   map: MapLibreMap | null | undefined;
   onRouteChange?: (cues: CoursePointRequest[]) => void;
+  onStateChange?: (state: RouteState) => void;
 }
 
 interface RouteInfo {
@@ -31,6 +38,7 @@ interface UseDirectionsResult {
   removeWaypoint: (index: number) => void;
   clearWaypoints: () => void;
   undoLastWaypoint: () => void;
+  restoreState: (state: RouteState) => void;
   isReady: boolean;
 }
 
@@ -41,12 +49,22 @@ interface UseDirectionsResult {
 export function useDirections({
   map,
   onRouteChange,
+  onStateChange,
 }: UseDirectionsOptions): UseDirectionsResult {
-  const directionsRef = useRef<MapLibreGlDirections | null>(null);
+  const directionsRef = useRef<CustomMapLibreGlDirections | null>(null);
   const [waypoints, setWaypoints] = useState<Coordinate[]>([]);
   const [isReady, setIsReady] = useState(false);
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const profile = useRoutingProfileStore((s) => s.routing_profiles);
+
+  // コールバックをrefで管理して依存配列から外す
+  const onRouteChangeRef = useRef(onRouteChange);
+  const onStateChangeRef = useRef(onStateChange);
+  useEffect(() => {
+    onRouteChangeRef.current = onRouteChange;
+    onStateChangeRef.current = onStateChange;
+    console.log("Updated onRouteChange and onStateChange refs");
+  }, [onRouteChange, onStateChange]);
 
   // Initialize directions plugin
   useEffect(() => {
@@ -80,14 +98,15 @@ export function useDirections({
       const handleRouteEnd = (
         event: MapLibreGlDirectionsEventType["fetchroutesend"]
       ) => {
-        const directions = event.data.directions;
+        const dir = directionsRef.current;
+        const apiResponse = event.data.directions;
 
-        // waypointsを更新
-        setWaypoints(directions?.waypoints?.map((wp) => wp.location) ?? []);
-        const route = directions?.routes?.[0] as Route | undefined;
+        // waypointsを更新（スナップされた位置）
+        setWaypoints(apiResponse?.waypoints?.map((wp) => wp.location) ?? []);
+        const route = apiResponse?.routes?.[0] as Route | undefined;
 
         if (!route) return;
-
+        console.log("renered");
         // Extract cue sheet from route steps
         const steps = (route.legs ?? []).flatMap((leg) => leg.steps ?? []);
         let cumDistM = 0;
@@ -115,8 +134,8 @@ export function useDirections({
         });
 
         // todo: 標高データの取得と計算
-        let elevation_gain = 0;
-        let elevation_loss = 0;
+        const elevation_gain = 0;
+        const elevation_loss = 0;
 
         // Get first and last points from waypoints
         const coordinates = route.geometry?.coordinates ?? [];
@@ -142,9 +161,59 @@ export function useDirections({
 
         setRouteInfo(newRouteInfo);
 
-        if (onRouteChange) {
+        if (onRouteChangeRef.current) {
           console.log("Course points:", coursePoints);
-          onRouteChange(coursePoints);
+          onRouteChangeRef.current(coursePoints);
+        }
+
+        // 状態変更を通知（永続化・履歴用）
+        // APIレスポンスから直接snappoints/routelinesを構築
+        // （ライブラリ内部の状態更新を待たずに取得できる）
+        if (onStateChangeRef.current && dir) {
+          // snappointsをAPIレスポンスから構築
+          // Mapbox APIが返すwaypointsはスナップされた位置
+          const snappoints: Feature<Point>[] = (
+            apiResponse?.waypoints ?? []
+          ).map((wp, index) => ({
+            type: "Feature" as const,
+            geometry: {
+              type: "Point" as const,
+              coordinates: wp.location,
+            },
+            properties: {
+              type: "SNAPPOINT",
+              index,
+            },
+          }));
+
+          // routelinesをAPIレスポンスから構築
+          // 各legのgeometryをroutelinesとして保存
+          const routelines: Feature<LineString>[][] = (route.legs ?? []).map(
+            (_leg, legIndex) => {
+              // legにはgeometryがないので、route全体のgeometryを使う
+              // 複数legの場合は分割が必要だが、今は単純にroute全体を使用
+              if (legIndex === 0) {
+                return [
+                  {
+                    type: "Feature" as const,
+                    geometry: route.geometry as LineString,
+                    properties: {
+                      type: "ROUTELINE",
+                      route: 0,
+                      leg: legIndex,
+                    },
+                  },
+                ];
+              }
+              return [];
+            }
+          );
+
+          onStateChangeRef.current({
+            waypoints: dir.waypointsFeatures, // ユーザーがクリックした元の位置
+            snappoints,
+            routelines,
+          });
         }
       };
 
@@ -165,7 +234,7 @@ export function useDirections({
     } else {
       map.once("load", initDirections);
     }
-  }, [map, profile, onRouteChange]);
+  }, [map, profile]);
 
   const addWaypoint = useCallback((coord: Coordinate) => {
     const directions = directionsRef.current;
@@ -216,6 +285,22 @@ export function useDirections({
     setRouteInfo(null);
   }, []);
 
+  // 状態を復元（リロード時や編集モード用）
+  const restoreState = useCallback((state: RouteState) => {
+    const directions = directionsRef.current;
+    if (!directions || state.waypoints.length === 0) return;
+
+    directions.setWaypointsFeatures(state.waypoints);
+    directions.setSnappointsFeatures(state.snappoints);
+    directions.setRoutelinesFeatures(state.routelines);
+
+    // waypointsのCoordinateを抽出
+    const coords: Coordinate[] = state.waypoints
+      .map((wp) => wp.geometry?.coordinates as Coordinate)
+      .filter(Boolean);
+    setWaypoints(coords);
+  }, []);
+
   return {
     waypoints,
     routeInfo,
@@ -223,6 +308,7 @@ export function useDirections({
     removeWaypoint,
     clearWaypoints,
     undoLastWaypoint,
+    restoreState,
     isReady,
   };
 }
