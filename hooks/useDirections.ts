@@ -1,3 +1,4 @@
+import { layers } from "@/features/routes/assets/restyling-layers";
 import { useRoutingProfileStore } from "@/features/routes/hooks";
 import type { RouteState } from "@/features/routes/stores/routeStateStore";
 import CustomMapLibreGlDirections from "@/lib/custom-directions";
@@ -54,6 +55,7 @@ export function useDirections({
   const [isReady, setIsReady] = useState(false);
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const profile = useRoutingProfileStore((s) => s.routing_profiles);
+  const isRestoringRef = useRef(false); // 復元中フラグ
 
   // コールバックをrefで管理して依存配列から外す
   const onRouteChangeRef = useRef(onRouteChange);
@@ -61,7 +63,6 @@ export function useDirections({
   useEffect(() => {
     onRouteChangeRef.current = onRouteChange;
     onStateChangeRef.current = onStateChange;
-    console.log("Updated onRouteChange and onStateChange refs");
   }, [onRouteChange, onStateChange]);
 
   // Initialize directions plugin
@@ -78,6 +79,13 @@ export function useDirections({
       const directions = new CustomMapLibreGlDirections(map, {
         api: "https://api.mapbox.com/directions/v5",
         profile,
+        layers,
+        // カスタムレイヤーに合わせてインタラクション対象を設定
+        // （デフォルトの *-casing レイヤーは存在しないため除外）
+        sensitiveWaypointLayers: ["maplibre-gl-directions-waypoint"],
+        sensitiveSnappointLayers: ["maplibre-gl-directions-snappoint"],
+        sensitiveRoutelineLayers: ["maplibre-gl-directions-routeline"],
+        sensitiveAltRoutelineLayers: ["maplibre-gl-directions-alt-routeline"],
         requestOptions: {
           access_token: process.env.NEXT_PUBLIC_MAPBOX_KEY,
           geometries: "geojson",
@@ -160,14 +168,14 @@ export function useDirections({
         setRouteInfo(newRouteInfo);
 
         if (onRouteChangeRef.current) {
-          console.log("Course points:", coursePoints);
           onRouteChangeRef.current(coursePoints);
         }
 
         // 状態変更を通知（永続化・履歴用）
         // APIレスポンスから直接snappoints/routelinesを構築
         // （ライブラリ内部の状態更新を待たずに取得できる）
-        if (onStateChangeRef.current && dir) {
+        // 復元中は履歴に追加しない（undo/redo時の二重登録防止）
+        if (onStateChangeRef.current && dir && !isRestoringRef.current) {
           // snappointsをAPIレスポンスから構築
           // Mapbox APIが返すwaypointsはスナップされた位置
           const snappoints: Feature<Point>[] = (
@@ -184,43 +192,107 @@ export function useDirections({
             },
           }));
 
+          const waypoints: Feature<Point>[] = (
+            apiResponse?.waypoints ?? []
+          ).map((wp, index) => ({
+            type: "Feature" as const,
+            geometry: {
+              type: "Point" as const,
+              coordinates: wp.location,
+            },
+            properties: {
+              type: "WAYPOINT",
+              index,
+            },
+          }));
+
           // routelinesをAPIレスポンスから構築
-          // 各legのgeometryをroutelinesとして保存
+          // 各legごとにルートラインを作成
+          // routelines に route: "SELECTED" と routeIndex: 0 を確実に設定（古いデータとの互換性のため）
+          // routeIndex は draw(false) 時に route プロパティを決定するために使用される
           const routelines: Feature<LineString>[][] = (route.legs ?? []).map(
-            (_leg, legIndex) => {
-              // legにはgeometryがないので、route全体のgeometryを使う
-              // 複数legの場合は分割が必要だが、今は単純にroute全体を使用
-              if (legIndex === 0) {
-                return [
-                  {
-                    type: "Feature" as const,
-                    geometry: route.geometry as LineString,
-                    properties: {
-                      type: "ROUTELINE",
-                      route: 0,
-                      leg: legIndex,
-                    },
+            (leg, legIndex) => {
+              return [
+                {
+                  type: "Feature" as const,
+                  geometry: route.geometry as LineString,
+                  properties: {
+                    type: "ROUTELINE",
+                    route: "SELECTED", // フィルターに合わせて"SELECTED"に変更
+                    leg: legIndex,
+                    routeIndex: 0,
+                    // arriveSnappointProperties: {
+                    //   type: "SNAPPOINT",
+                    //   highlight: false,
+                    //   category: "WAYPOINT",
+                    //   profile: "driving",
+                    //   waypointProperties: {
+                    //     type: "WAYPOINT",
+                    //     index: legIndex + 1, // 到着地点は次のwaypointに対応
+                    //   },
+                    // },
+                    // departSnappointProperties: {
+                    //   type: "SNAPPOINT",
+                    //   highlight: false,
+                    //   category: "WAYPOINT",
+                    //   profile: "driving",
+                    //   waypointProperties: {
+                    //     type: "WAYPOINT",
+                    //     index: legIndex, // 出発地点は現在のwaypointに対応
+                    //   },
+                    // },
                   },
-                ];
-              }
-              return [];
+                },
+              ];
             }
           );
 
+          // onStateChangeRef.current({
+          //   waypoints: structuredClone(dir.waypointsFeatures), // ユーザーがクリックした元の位置
+          //   snappoints,
+          //   routelines,
+          // });
           onStateChangeRef.current({
-            waypoints: dir.waypointsFeatures, // ユーザーがクリックした元の位置
+            waypoints, // APIレスポンスから生成したwaypoints（スナップされた位置）
             snappoints,
             routelines,
           });
         }
       };
 
+      // waypoint追加時のハンドラ（1点目でも状態を保存するため）
+      const handleWaypointChange = () => {
+        const dir = directionsRef.current;
+        if (!dir || isRestoringRef.current) return;
+
+        const currentWaypoints = dir.waypointsFeatures;
+        // waypointが1つだけの場合（ルート計算が行われない）
+        // fetchroutesendは発火しないので、ここで状態を保存
+        if (currentWaypoints.length === 1 && onStateChangeRef.current) {
+          // ディープコピーして渡す（ライブラリ内部の配列は後で変更されるため）
+          console.log(
+            "waypoint added but no route calculated, saving state",
+            currentWaypoints
+          );
+          onStateChangeRef.current({
+            waypoints: structuredClone(currentWaypoints),
+            snappoints: [],
+            routelines: [],
+          });
+        }
+      };
+
       // ルートリクエスト完了時のイベントリスナーを登録
       directions.on("fetchroutesend", handleRouteEnd);
+      // waypoint追加・削除時のイベントリスナーを登録
+      directions.on("addwaypoint", handleWaypointChange);
+      directions.on("removewaypoint", handleWaypointChange);
 
       // Cleanup function
       return () => {
         directions.off("fetchroutesend", handleRouteEnd);
+        directions.off("addwaypoint", handleWaypointChange);
+        directions.off("removewaypoint", handleWaypointChange);
         directions.destroy();
         directionsRef.current = null;
         setIsReady(false);
@@ -253,8 +325,11 @@ export function useDirections({
   // 状態を復元（リロード時や編集モード用）
   const restoreState = useCallback((state: RouteState) => {
     const directions = directionsRef.current;
-    if (!directions || state.waypoints.length === 0) return;
+    if (!directions) return;
 
+    // 復元中フラグを立てて、onStateChangeが呼ばれないようにする
+    isRestoringRef.current = true;
+    directions.clear();
     directions.setWaypointsFeatures(state.waypoints);
     directions.setSnappointsFeatures(state.snappoints);
     directions.setRoutelinesFeatures(state.routelines);
@@ -264,6 +339,11 @@ export function useDirections({
       .map((wp) => wp.geometry?.coordinates as Coordinate)
       .filter(Boolean);
     setWaypoints(coords);
+
+    // 次のイベントループでフラグをリセット（非同期イベント対応）
+    setTimeout(() => {
+      isRestoringRef.current = false;
+    }, 0);
   }, []);
 
   return {
