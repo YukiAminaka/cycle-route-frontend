@@ -211,7 +211,7 @@ export function CueSheet({
 
                 {isExpanded && (
                   <div className="space-y-0">
-                    {cues.slice(0, -2).map((cue, idx) => {
+                    {cues.slice(1, -1).map((cue, idx) => {
                       const actualIndex = idx + 1;
                       const cumulativeDistance = getCumulativeDistance(
                         cues,

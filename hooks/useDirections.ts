@@ -112,32 +112,84 @@ export function useDirections({
         const route = apiResponse?.routes?.[0] as Route | undefined;
 
         if (!route) return;
-        console.log("renered");
+
         // Extract cue sheet from route steps
         const steps = (route.legs ?? []).flatMap((leg) => leg.steps ?? []);
-        let cumDistM = 0;
-        const coursePoints: CoursePointRequest[] = steps.map((step) => {
-          const segDistM = step.distance ?? 0;
-          cumDistM += segDistM;
-          const maneuverLocation = step.maneuver?.location;
-          return {
-            location: maneuverLocation
-              ? JSON.stringify({
-                  type: "Point",
-                  coordinates: maneuverLocation,
-                })
-              : "",
-            road_name: step.name ?? "",
-            seg_dist_m: segDistM,
-            cum_dist_m: cumDistM,
-            duration: step.duration ?? 0,
-            maneuver_type: step.maneuver?.type,
-            modifier: step.maneuver?.modifier,
-            bearing_after: step.maneuver?.bearing_after,
-            bearing_before: step.maneuver?.bearing_before,
-            instruction: step.maneuver?.instruction,
-          };
-        });
+
+        // depart/arriveタイプの中間ポイントをスキップし、累積距離と時間を繰り越す
+        // 到達ベース: 各ポイントには「このポイントに到達するまでの距離・時間」を格納
+        interface Accumulator {
+          coursePoints: CoursePointRequest[];
+          cumDistM: number; // 累積距離
+          cumDuration: number; // 累積時間
+          pendingDistM: number; // 次のポイントのseg_dist_mとして使う値
+          pendingDuration: number; // 次のポイントのdurationとして使う値
+        }
+
+        const { coursePoints } = steps.reduce<Accumulator>(
+          (acc, step, index) => {
+            const stepDistM = step.distance ?? 0;
+            const stepDuration = step.duration ?? 0;
+            const maneuverType = step.maneuver?.type;
+
+            // スキップ条件:
+            // - "depart"かつ最初のステップでない
+            // - "arrive"かつ最後のステップでない
+            const isFirstStep = index === 0;
+            const isLastStep = index === steps.length - 1;
+            const shouldSkip =
+              (maneuverType === "depart" && !isFirstStep) ||
+              (maneuverType === "arrive" && !isLastStep);
+
+            if (shouldSkip) {
+              // このステップをスキップし、距離と時間を次のポイントに繰り越す
+              return {
+                ...acc,
+                cumDistM: acc.cumDistM + stepDistM,
+                cumDuration: acc.cumDuration + stepDuration,
+                pendingDistM: acc.pendingDistM + stepDistM,
+                pendingDuration: acc.pendingDuration + stepDuration,
+              };
+            }
+
+            // コースポイントを追加（到達ベース）
+            const maneuverLocation = step.maneuver?.location;
+            const coursePoint: CoursePointRequest = {
+              location: maneuverLocation
+                ? JSON.stringify({
+                    type: "Point",
+                    coordinates: maneuverLocation,
+                  })
+                : "",
+              road_name: step.name ?? "",
+              // 到達ベース: このポイントに到達するまでの距離・時間
+              seg_dist_m: acc.pendingDistM, // 前のポイントからここまでの距離
+              cum_dist_m: acc.cumDistM, // コース開始からここまでの累積距離
+              duration: acc.pendingDuration, // 前のポイントからここまでの時間
+              maneuver_type: step.maneuver?.type,
+              modifier: step.maneuver?.modifier,
+              bearing_after: step.maneuver?.bearing_after,
+              bearing_before: step.maneuver?.bearing_before,
+              instruction: step.maneuver?.instruction,
+            };
+
+            return {
+              coursePoints: [...acc.coursePoints, coursePoint],
+              cumDistM: acc.cumDistM + stepDistM,
+              cumDuration: acc.cumDuration + stepDuration,
+              // 次のポイントに渡す値（このステップの距離・時間）
+              pendingDistM: stepDistM,
+              pendingDuration: stepDuration,
+            };
+          },
+          {
+            coursePoints: [],
+            cumDistM: 0,
+            cumDuration: 0,
+            pendingDistM: 0, // 最初のポイントは0（出発地点）
+            pendingDuration: 0,
+          }
+        );
 
         // todo: 標高データの取得と計算
         const elevation_gain = 0;
@@ -166,7 +218,7 @@ export function useDirections({
         };
 
         setRouteInfo(newRouteInfo);
-
+        console.log("cues", coursePoints);
         if (onRouteChangeRef.current) {
           onRouteChangeRef.current(coursePoints);
         }
