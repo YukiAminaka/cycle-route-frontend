@@ -1,17 +1,34 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { RouteResponseModel } from "@/types/api";
-import { Bike, Clock, Mountain, TrendingDown } from "lucide-react";
+import {
+  Bike,
+  Clock,
+  Download,
+  FileJson,
+  Map as MapIcon,
+  Mountain,
+  Pencil,
+  TrendingDown,
+} from "lucide-react";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
-import Map, { Layer, Source } from "react-map-gl/maplibre";
-import { MapProvider } from "react-map-gl/maplibre";
+import Map, { Layer, MapProvider, Source } from "react-map-gl/maplibre";
 
 interface RouteDetailProps {
   route: RouteResponseModel;
 }
 
 export default function RouteDetail({ route }: RouteDetailProps) {
+  const router = useRouter();
   const mapStyle = useMemo(
     () =>
       `https://api.maptiler.com/maps/outdoor-v2/style.json?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY}`,
@@ -77,12 +94,21 @@ export default function RouteDetail({ route }: RouteDetailProps) {
     });
   };
 
+  const handleEdit = () => {
+    const routeId = route.id;
+    if (routeId) {
+      router.push(`/routes/${routeId}/edit`);
+    }
+  };
+
   return (
     <MapProvider>
       <div className="relative h-full w-full flex">
         {/* サイドバー - ルート情報 */}
         <div className="w-80 bg-background border-r p-6 overflow-auto">
-          <h1 className="text-2xl font-bold mb-2">{route.name || "無題のルート"}</h1>
+          <h1 className="text-2xl font-bold mb-2">
+            {route.name || "無題のルート"}
+          </h1>
           <p className="text-sm text-muted-foreground mb-6">
             {formatDate(route.created_at)}
           </p>
@@ -93,6 +119,37 @@ export default function RouteDetail({ route }: RouteDetailProps) {
             </p>
           )}
 
+          {/* 編集ボタン */}
+          <div className="flex mb-6">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleEdit}
+              className="ml-auto gap-2"
+            >
+              <Pencil className="h-4 w-4" />
+              編集
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="ml-2 gap-2">
+                  <Download className="h-4 w-4" />
+                  エクスポート
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem className="gap-2">
+                  <MapIcon className="h-4 w-4" />
+                  GPX形式
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2">
+                  <FileJson className="h-4 w-4" />
+                  GeoJSON形式
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-primary/10 rounded-lg">
@@ -100,7 +157,9 @@ export default function RouteDetail({ route }: RouteDetailProps) {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">距離</p>
-                <p className="font-semibold">{formatDistance(route.distance)}</p>
+                <p className="font-semibold">
+                  {formatDistance(route.distance)}
+                </p>
               </div>
             </div>
 
@@ -110,7 +169,9 @@ export default function RouteDetail({ route }: RouteDetailProps) {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">所要時間</p>
-                <p className="font-semibold">{formatDuration(route.duration)}</p>
+                <p className="font-semibold">
+                  {formatDuration(route.duration)}
+                </p>
               </div>
             </div>
 

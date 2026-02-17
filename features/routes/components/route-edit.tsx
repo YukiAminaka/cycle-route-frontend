@@ -13,7 +13,7 @@ export default function RouteEditer({ route }: RouteDetailProps) {
     <div className="relative h-full w-full flex">
       <div className="flex-1 relative">
         <MapProvider>
-          <RoutePlanner />
+          <RoutePlanner editRoute={route} />
         </MapProvider>
       </div>
     </div>

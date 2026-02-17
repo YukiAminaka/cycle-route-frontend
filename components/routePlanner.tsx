@@ -8,7 +8,11 @@ import { useRouteStateStore } from "@/features/routes/hooks";
 import type { RouteState } from "@/features/routes/stores/routeStateStore";
 import { useDirections } from "@/hooks/useDirections";
 import { useMapboxSearch } from "@/hooks/useMapboxSearch";
-import { CoursePointRequest, WaypointRequest } from "@/types/api";
+import {
+  CoursePointRequest,
+  RouteResponseModel,
+  WaypointRequest,
+} from "@/types/api";
 import { Coordinate } from "@/types/route";
 import { ErrorBoundary } from "./error-boundary";
 import { RouteCreationSidebar } from "./route-creation-sidebar";
@@ -21,7 +25,12 @@ const INITIAL_VIEW = {
   zoom: 14,
 };
 
-export const RoutePlanner = () => {
+// ルート編集時はpropsでrouteを受け取る
+type RoutePlannerProps = {
+  editRoute?: RouteResponseModel;
+};
+
+export const RoutePlanner = ({ editRoute }: RoutePlannerProps) => {
   const { map } = useMap();
   const nativeMap = map?.getMap();
   const mapRef = useRef<MapLibreMapRef>(null);
@@ -141,12 +150,13 @@ export const RoutePlanner = () => {
     setCues([]);
   }, [clearWaypoints, clearSuggestions, clearState, setQuery]);
 
+  // ファイルのインポート機能
   const handleImport = useCallback(() => {
     console.log("Import not yet implemented");
     // TODO: Implement route import functionality
   }, []);
 
-  // Render map style URL
+  // maptilerのスタイルURL
   const mapStyle = useMemo(
     () =>
       `https://api.maptiler.com/maps/outdoor-v2/style.json?key=${process.env.NEXT_PUBLIC_MAPTILER_KEY}`,
