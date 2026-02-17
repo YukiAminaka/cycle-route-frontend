@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { RouteResponseModel } from "@/types/api";
+import bbox from "@turf/bbox";
 import {
   Bike,
   Clock,
@@ -20,7 +21,8 @@ import {
 } from "lucide-react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import type { MapEvent } from "react-map-gl/maplibre";
 import Map, { Layer, MapProvider, Source } from "react-map-gl/maplibre";
 
 interface RouteDetailProps {
@@ -66,6 +68,30 @@ export default function RouteDetail({ route }: RouteDetailProps) {
       zoom: 12,
     };
   }, [route.first_point]);
+
+  // マップロード時にbboxにフィットさせる
+  const handleMapLoad = useCallback(
+    (event: MapEvent) => {
+      if (!route.bbox) return;
+      try {
+        const bboxGeoJson = JSON.parse(route.bbox as string);
+        const [minLng, minLat, maxLng, maxLat] = bbox(bboxGeoJson);
+        event.target.fitBounds(
+          [
+            [minLng, minLat], // 西南
+            [maxLng, maxLat], // 東北
+          ],
+          {
+            padding: 40,
+            duration: 1000,
+          }
+        );
+      } catch {
+        // bboxのパースに失敗した場合は何もしない
+      }
+    },
+    [route.bbox]
+  );
 
   const formatDistance = (distance: number | undefined) => {
     if (!distance) return "0 km";
@@ -204,6 +230,7 @@ export default function RouteDetail({ route }: RouteDetailProps) {
             initialViewState={initialViewState}
             style={{ width: "100%", height: "100%" }}
             mapStyle={mapStyle}
+            onLoad={handleMapLoad}
           >
             {routeGeoJson && (
               <Source id="route" type="geojson" data={routeGeoJson}>
