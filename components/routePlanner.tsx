@@ -4,8 +4,9 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Map, { MapRef as MapLibreMapRef, useMap } from "react-map-gl/maplibre";
 
-import { useRouteStateStore } from "@/features/routes/hooks";
+import { useEditMetaStore, useRouteStateStore } from "@/features/routes/hooks";
 import type { RouteState } from "@/features/routes/stores/routeStateStore";
+import { convertRouteToState } from "@/features/routes/utils/convertRouteToState";
 import { useDirections } from "@/hooks/useDirections";
 import { useMapboxSearch } from "@/hooks/useMapboxSearch";
 import {
@@ -14,6 +15,15 @@ import {
   WaypointRequest,
 } from "@/types/api";
 import { Coordinate } from "@/types/route";
+import { Button } from "./ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 import { ErrorBoundary } from "./error-boundary";
 import { RouteCreationSidebar } from "./route-creation-sidebar";
 import { RouteCreationToolbar } from "./route-creation-toolbar";
@@ -35,12 +45,14 @@ export const RoutePlanner = ({ editRoute }: RoutePlannerProps) => {
   const nativeMap = map?.getMap();
   const mapRef = useRef<MapLibreMapRef>(null);
   const hasRestoredRef = useRef(false);
+  const hasInitializedEditRef = useRef(false);
 
   // Component state
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
   const [cues, setCues] = useState<CoursePointRequest[]>([]);
   const [routeName, setRouteName] = useState("");
+  const [showEditContinueDialog, setShowEditContinueDialog] = useState(false);
 
   // Route state management (undo/redo + localStorage persistence)
   const routeState = useRouteStateStore((s) => s.present);
@@ -50,6 +62,12 @@ export const RoutePlanner = ({ editRoute }: RoutePlannerProps) => {
   const undoState = useRouteStateStore((s) => s.undo);
   const redoState = useRouteStateStore((s) => s.redo);
   const clearState = useRouteStateStore((s) => s.clear);
+  const initializeState = useRouteStateStore((s) => s.initialize);
+
+  // Edit meta management
+  const editMeta = useEditMetaStore((s) => s.editMeta);
+  const setEditMeta = useEditMetaStore((s) => s.setEditMeta);
+  const clearEditMeta = useEditMetaStore((s) => s.clearEditMeta);
 
   const canUndo = past.length > 0;
   const canRedo = future.length > 0;
@@ -94,13 +112,65 @@ export const RoutePlanner = ({ editRoute }: RoutePlannerProps) => {
     onStateChange: handleStateChange,
   });
 
-  // Restore state from localStorage on mount
+  // 編集モードの初期化: editRouteが渡された場合
   useEffect(() => {
-    if (isReady && !hasRestoredRef.current && routeState.waypoints.length > 0) {
+    if (!isReady || !editRoute || hasInitializedEditRef.current) return;
+
+    hasInitializedEditRef.current = true;
+    hasRestoredRef.current = true;
+
+    // 既存の下書きをクリアして、編集するルートを読み込む
+    const editState = convertRouteToState(editRoute);
+    initializeState(editState);
+    restoreState(editState);
+
+    // 編集メタ情報を設定
+    setEditMeta({
+      routeId: editRoute.id ?? "",
+      routeName: editRoute.name ?? "",
+    });
+
+    // ルート名を設定
+    setRouteName(editRoute.name ?? "");
+  }, [isReady, editRoute, initializeState, restoreState, setEditMeta]);
+
+  // 新規作成モードで、以前編集中だった場合はダイアログを表示
+  useEffect(() => {
+    if (!isReady || editRoute || hasRestoredRef.current) return;
+
+    // editMetaが存在する = 以前編集モードだった
+    if (editMeta) {
+      setShowEditContinueDialog(true);
+    } else if (routeState.waypoints.length > 0) {
+      // 通常の新規作成で下書きがある場合は復元
       hasRestoredRef.current = true;
       restoreState(routeState);
     }
-  }, [isReady, routeState, restoreState]);
+  }, [isReady, editRoute, editMeta, routeState, restoreState]);
+
+  // ダイアログで「編集を継続」を選択
+  const handleContinueEditing = useCallback(() => {
+    setShowEditContinueDialog(false);
+    hasRestoredRef.current = true;
+    // editMetaが存在する状態で下書きを復元（編集中のルートを新規作成画面で表示）
+    if (routeState.waypoints.length > 0) {
+      restoreState(routeState);
+    }
+    // editMetaからルート名を復元
+    if (editMeta?.routeName) {
+      setRouteName(editMeta.routeName);
+    }
+  }, [routeState, restoreState, editMeta]);
+
+  // ダイアログで「新規作成」を選択
+  const handleStartNew = useCallback(() => {
+    setShowEditContinueDialog(false);
+    hasRestoredRef.current = true;
+    // 下書きと編集メタをクリア
+    clearState();
+    clearEditMeta();
+    setRouteName("");
+  }, [clearState, clearEditMeta]);
 
   // Handle undo with map state restoration
   const handleUndo = useCallback(() => {
@@ -215,6 +285,27 @@ export const RoutePlanner = ({ editRoute }: RoutePlannerProps) => {
             検索中...
           </div>
         )}
+
+        {/* 編集継続確認ダイアログ */}
+        <Dialog open={showEditContinueDialog} onOpenChange={setShowEditContinueDialog}>
+          <DialogContent showCloseButton={false}>
+            <DialogHeader>
+              <DialogTitle>編集中のルートがあります</DialogTitle>
+              <DialogDescription>
+                「{editMeta?.routeName}」の編集を継続しますか？
+                新規作成を選択すると、編集中のデータは破棄されます。
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={handleStartNew}>
+                新規作成
+              </Button>
+              <Button onClick={handleContinueEditing}>
+                編集を継続
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </ErrorBoundary>
   );

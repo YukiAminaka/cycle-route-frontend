@@ -262,37 +262,40 @@ export function useDirections({
           // 各legごとにルートラインを作成
           // routelines に route: "SELECTED" と routeIndex: 0 を確実に設定（古いデータとの互換性のため）
           // routeIndex は draw(false) 時に route プロパティを決定するために使用される
+          // legIndex, departSnappointProperties, arriveSnappointProperties はライブラリの onMove で必要
           const routelines: Feature<LineString>[][] = (route.legs ?? []).map(
             (leg, legIndex) => {
+              // ライブラリが onMove 時に JSON.parse() するため、JSON文字列として保存
+              const departSnappointProperties = JSON.stringify({
+                type: "SNAPPOINT",
+                highlight: false,
+                category: "WAYPOINT",
+                waypointProperties: {
+                  type: "WAYPOINT",
+                  index: legIndex,
+                },
+              });
+              const arriveSnappointProperties = JSON.stringify({
+                type: "SNAPPOINT",
+                highlight: false,
+                category: "WAYPOINT",
+                waypointProperties: {
+                  type: "WAYPOINT",
+                  index: legIndex + 1,
+                },
+              });
+
               return [
                 {
                   type: "Feature" as const,
                   geometry: route.geometry as LineString,
                   properties: {
                     type: "ROUTELINE",
-                    route: "SELECTED", // フィルターに合わせて"SELECTED"に変更
-                    leg: legIndex,
+                    route: "SELECTED",
+                    legIndex: JSON.stringify(legIndex), // ライブラリが JSON.parse() するため文字列化
                     routeIndex: 0,
-                    // arriveSnappointProperties: {
-                    //   type: "SNAPPOINT",
-                    //   highlight: false,
-                    //   category: "WAYPOINT",
-                    //   profile: "driving",
-                    //   waypointProperties: {
-                    //     type: "WAYPOINT",
-                    //     index: legIndex + 1, // 到着地点は次のwaypointに対応
-                    //   },
-                    // },
-                    // departSnappointProperties: {
-                    //   type: "SNAPPOINT",
-                    //   highlight: false,
-                    //   category: "WAYPOINT",
-                    //   profile: "driving",
-                    //   waypointProperties: {
-                    //     type: "WAYPOINT",
-                    //     index: legIndex, // 出発地点は現在のwaypointに対応
-                    //   },
-                    // },
+                    departSnappointProperties,
+                    arriveSnappointProperties,
                   },
                 },
               ];
