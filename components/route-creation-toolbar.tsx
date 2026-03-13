@@ -176,12 +176,14 @@ export function RouteCreationToolbar({
               <Button
                 variant="outline"
                 className="flex-1 h-9 text-xs bg-transparent"
+                disabled
               >
                 ルートに追加
               </Button>
               <Button
                 variant="outline"
                 className="flex-1 h-9 text-xs bg-transparent"
+                disabled
               >
                 カスタムPOI
               </Button>
@@ -190,12 +192,14 @@ export function RouteCreationToolbar({
               <Button
                 variant="outline"
                 className="flex-1 h-9 text-xs bg-transparent"
+                disabled
               >
                 カスタムキュー
               </Button>
               <Button
                 variant="outline"
                 className="flex-1 h-9 text-xs bg-transparent"
+                disabled
               >
                 コントロールポイント
               </Button>
@@ -270,6 +274,7 @@ export function RouteCreationToolbar({
                 variant="outline"
                 size="sm"
                 className="text-xs bg-transparent"
+                disabled
               >
                 逆のルート
               </Button>
@@ -277,6 +282,7 @@ export function RouteCreationToolbar({
                 variant="outline"
                 size="sm"
                 className="text-xs bg-transparent"
+                disabled
               >
                 出戻り
               </Button>
@@ -284,6 +290,7 @@ export function RouteCreationToolbar({
                 variant="outline"
                 size="sm"
                 className="text-xs bg-transparent"
+                disabled
               >
                 ルートを複製
               </Button>
@@ -291,6 +298,7 @@ export function RouteCreationToolbar({
                 variant="outline"
                 size="sm"
                 className="text-xs bg-transparent"
+                disabled
               >
                 選択
               </Button>
