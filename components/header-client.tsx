@@ -1,25 +1,23 @@
 "use client";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  Bike,
-  Menu,
-  User,
-  ChevronDown,
-  LogOut,
-  Settings,
-  HelpCircle,
-  MessageSquare,
-  Globe,
-} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Bike,
+  ChevronDown,
+  Globe,
+  LogOut,
+  Menu,
+  Settings,
+  User,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -131,19 +129,19 @@ export function HeaderClient({
                     <User className="mr-2 h-4 w-4" />
                     プロフィール
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push("/messages")}>
+                  {/* <DropdownMenuItem onClick={() => router.push("/messages")}>
                     <MessageSquare className="mr-2 h-4 w-4" />
                     メッセージ
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => router.push("/settings")}>
                     <Settings className="mr-2 h-4 w-4" />
                     設定
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push("/help")}>
+                  {/* <DropdownMenuItem onClick={() => router.push("/help")}>
                     <HelpCircle className="mr-2 h-4 w-4" />
                     ヘルプ
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />

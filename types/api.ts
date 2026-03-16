@@ -21,6 +21,9 @@ export type WaypointResponse = components["schemas"]["route.WaypointResponse"];
 export type CreateUserRequest = components["schemas"]["user.CreateUserRequest"];
 export type UserResponse = components["schemas"]["user.UserResponse"];
 export type UserResponseModel = components["schemas"]["user.UserResponseModel"];
+export type LoginUserResponse = components["schemas"]["user.LoginUserResponse"];
+export type LoginUserResponseModel =
+  components["schemas"]["user.LoginUserResponseModel"];
 
 // Common
 export type ErrorResponse = components["schemas"]["response.ErrorResponse"];
