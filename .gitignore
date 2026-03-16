@@ -42,6 +42,6 @@ yarn-error.log*
 next-env.d.ts
 
 .mcp.json
-.cloude
+.claude/
 *storybook.log
 storybook-static
