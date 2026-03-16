@@ -1,18 +1,22 @@
-import { getServerSession } from "@ory/nextjs/app";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getUserInfo } from "@/features/users/fetcher/user-info";
+import { getServerSession } from "@ory/nextjs/app";
 import {
-  User,
-  MapPin,
-  Calendar,
   Bike,
+  Camera,
+  Clock,
+  Flame,
+  MapPin,
   Mountain,
-  TrendingUp,
   Settings,
 } from "lucide-react";
+import { notFound } from "next/navigation";
+import { ActivityChart } from "./activity-chart";
 
 export default async function UserProfilePage({
   params,
@@ -21,292 +25,344 @@ export default async function UserProfilePage({
 }) {
   const { id } = await params;
   const session = await getServerSession();
+  const { data, error } = await getUserInfo(id);
 
-  // Mock user data - in a real app, this would be fetched based on the id
+  if (error || !data?.user) {
+    notFound();
+  }
+
   const user = {
     id,
-    name: "田中 太郎",
-    username: "tanaka_taro",
-    bio: "週末サイクリストです。山岳ルートが大好きで、毎週末新しいルートを探索しています。",
-    location: "東京都",
-    joinedDate: "2023年4月",
+    name: "Yuki",
+    team: "Arakawa Cycling Team",
+    location: "Tokyo, Adachi-ku",
     avatar: "/images/design-mode/shadcn.png",
-    stats: {
-      totalDistance: 2847.5,
-      totalElevation: 45230,
-      totalRoutes: 127,
-      followers: 342,
-      following: 189,
+    recentActivities: {
+      past4weeks: 0,
     },
-    recentActivities: [
+    activityRange: {
+      label: "2024/09/30〜2024/10/06のアクティビティ",
+      distance: 70.1,
+      time: "3時間7分",
+      elevation: 152,
+    },
+    career: {
+      distance: 4155.5,
+      elevation: 20103,
+      activities: 82,
+      activeTime: "170:27",
+      calories: 11888,
+      photos: 2,
+    },
+    routes: [
       {
         id: "1",
-        name: "箱根ヒルクライム",
-        date: "2024年1月15日",
-        distance: 45.2,
-        elevation: 1234,
-        time: "2h 34m",
+        title: "箱根ヒルクライム",
+        description:
+          "神奈川県の定番ヒルクライムコース。急勾配が続く本格的な山岳ルートで、頂上からの眺めは絶景です。",
+        image: null,
       },
       {
         id: "2",
-        name: "多摩川サイクリングロード",
-        date: "2024年1月12日",
-        distance: 62.8,
-        elevation: 234,
-        time: "3h 12m",
+        title: "多摩川サイクリングロード",
+        description:
+          "東京都内を流れる多摩川沿いの平坦なサイクリングロード。初心者から上級者まで楽しめるコースです。",
+        image: null,
       },
       {
         id: "3",
-        name: "奥多摩周遊",
-        date: "2024年1月8日",
-        distance: 89.4,
-        elevation: 2156,
-        time: "5h 45m",
-      },
-    ],
-    achievements: [
-      {
-        id: "1",
-        name: "100kmライダー",
-        icon: "🚴",
-        description: "100km以上のライドを完走",
-      },
-      {
-        id: "2",
-        name: "山岳王",
-        icon: "⛰️",
-        description: "累計獲得標高10,000m達成",
-      },
-      {
-        id: "3",
-        name: "早起き",
-        icon: "🌅",
-        description: "朝5時前に10回ライド開始",
-      },
-      {
-        id: "4",
-        name: "探検家",
-        icon: "🗺️",
-        description: "50以上の異なるルートを走破",
+        title: "奥多摩周遊",
+        description:
+          "東京都西部の山岳地帯を巡る本格的なルート。豊かな自然の中をダイナミックに走れます。",
+        image: null,
       },
     ],
   };
 
+  const days = ["月", "火", "水", "木", "金", "土", "日"];
+
   return (
-    <div className="overflow-auto h-full">
-      <div className="mx-auto max-w-6xl p-6 space-y-6 bg-background">
-        {/* Session Info Card */}
-        {session && (
-          <Card className="p-6 bg-blue-50 dark:bg-blue-950">
-            <h2 className="text-xl font-bold text-foreground mb-4">
-              セッション情報
-            </h2>
-            <div className="space-y-2 text-sm">
-              <div className="grid grid-cols-2 gap-2">
-                <span className="font-semibold text-muted-foreground">
-                  ユーザーID:
-                </span>
-                <span className="text-foreground break-all">
-                  {session.identity?.id || "N/A"}
-                </span>
-                <span className="font-semibold text-muted-foreground">
-                  認証済み:
-                </span>
-                <span className="text-foreground">
-                  {session.active ? "はい" : "いいえ"}
-                </span>
-                <span className="font-semibold text-muted-foreground">
-                  セッションID:
-                </span>
-                <span className="text-foreground break-all">
-                  {session.id || "N/A"}
-                </span>
-              </div>
-              <details className="mt-4">
-                <summary className="cursor-pointer font-semibold text-muted-foreground hover:text-foreground">
-                  詳細情報を表示
-                </summary>
-                <pre className="mt-2 p-4 bg-background rounded-md overflow-auto text-xs">
-                  {JSON.stringify(session, null, 2)}
-                </pre>
-              </details>
-            </div>
-          </Card>
+    <div className="overflow-auto h-full bg-background">
+      <div className="mx-auto max-w-5xl space-y-0">
+        {/* Session debug info */}
+        {session && process.env.NODE_ENV === "development" && (
+          <div className="p-4">
+            <details className="text-xs text-muted-foreground">
+              <summary className="cursor-pointer">
+                セッション情報（開発用）
+              </summary>
+              <pre className="mt-2 p-3 bg-muted rounded text-xs overflow-auto">
+                {JSON.stringify(session, null, 2)}
+              </pre>
+            </details>
+          </div>
         )}
 
-        {/* Profile Header */}
-        <Card className="p-8">
-          <div className="flex flex-col md:flex-row gap-6 items-start">
-            <Avatar className="h-32 w-32">
-              <AvatarImage src={user.avatar || "/placeholder.svg"} />
-              <AvatarFallback>
-                <User className="h-16 w-16" />
-              </AvatarFallback>
-            </Avatar>
+        {/* Hero Banner */}
+        <div className="relative h-64 overflow-hidden rounded-b-xl">
+          {/* Background overlay */}
+          <div className="absolute inset-0 bg-linear-to-br from-neutral-800 via-neutral-700 to-neutral-900" />
+          {/* Topographic pattern overlay */}
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='white' stroke-width='0.5'/%3E%3Ccircle cx='50' cy='50' r='30' fill='none' stroke='white' stroke-width='0.5'/%3E%3Ccircle cx='50' cy='50' r='20' fill='none' stroke='white' stroke-width='0.5'/%3E%3C/svg%3E")`,
+              backgroundSize: "80px 80px",
+            }}
+          />
 
-            <div className="flex-1 space-y-4">
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">
+          {/* Content */}
+          <div className="absolute inset-0 flex items-end p-8 pb-6">
+            <div className="flex items-end gap-6">
+              <Avatar className="h-28 w-28 border-4 border-white shadow-lg shrink-0">
+                <AvatarImage src={user.avatar} />
+                <AvatarFallback className="text-2xl font-bold bg-amber-400 text-white">
+                  {user.name[0]}
+                </AvatarFallback>
+              </Avatar>
+              <div className="pb-1">
+                <h1 className="text-4xl font-bold text-white tracking-tight">
                   {user.name}
                 </h1>
-                <p className="text-muted-foreground">@{user.username}</p>
-              </div>
-
-              <p className="text-foreground leading-relaxed">{user.bio}</p>
-
-              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 mt-1 text-white/90">
                   <MapPin className="h-4 w-4" />
-                  {user.location}
+                  <span className="text-sm">{user.location}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  {user.joinedDate}に参加
-                </div>
-              </div>
-
-              <div className="flex gap-4 text-sm">
-                <button className="hover:underline">
-                  <span className="font-bold text-foreground">
-                    {user.stats.followers}
-                  </span>{" "}
-                  <span className="text-muted-foreground">フォロワー</span>
-                </button>
-                <button className="hover:underline">
-                  <span className="font-bold text-foreground">
-                    {user.stats.following}
-                  </span>{" "}
-                  <span className="text-muted-foreground">フォロー中</span>
-                </button>
+                <p className="text-white/80 text-sm mt-1">{user.team}</p>
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <Button variant="outline" size="icon">
+            <div className="ml-auto pb-1 flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white"
+              >
                 <Settings className="h-4 w-4" />
               </Button>
-              <Button>フォロー</Button>
+              <Button className="bg-white text-neutral-900 hover:bg-white/90">
+                フォロー
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Activity Summary Section */}
+        <Card className="rounded-none border-x-0 border-t-0 shadow-none">
+          <div className="px-8 py-6">
+            <div className="flex items-start gap-8">
+              {/* Left: period + count */}
+              <div className="min-w-40">
+                <p className="text-sm text-muted-foreground mb-1">過去4週間</p>
+                <p className="text-6xl font-bold text-foreground leading-none">
+                  {user.recentActivities.past4weeks}
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  合計アクティビティ
+                </p>
+              </div>
+
+              <Separator orientation="vertical" className="h-20 self-center" />
+
+              {/* Right: days of week */}
+              <div className="flex-1">
+                <div className="flex gap-3 mb-4">
+                  {days.map((day) => (
+                    <div key={day} className="flex flex-col items-center gap-1">
+                      <span className="text-xs text-muted-foreground">
+                        {day}
+                      </span>
+                      <div className="w-6 h-6 rounded-full border border-border" />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-4 text-muted-foreground">
+                  <Bike className="h-5 w-5" />
+                  <span className="text-sm">アクティビティなし</span>
+                </div>
+              </div>
             </div>
           </div>
         </Card>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Bike className="h-6 w-6 text-primary" />
-              </div>
+        {/* Activity Chart Section */}
+        <Card className="rounded-none border-x-0 shadow-none">
+          <div className="px-8 py-6">
+            {/* Date range header */}
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-2xl font-bold text-foreground">
-                  {user.stats.totalDistance.toLocaleString()} km
+                <p className="text-sm text-muted-foreground">
+                  {user.activityRange.label}
                 </p>
-                <p className="text-sm text-muted-foreground">総走行距離</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <Mountain className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">
-                  {user.stats.totalElevation.toLocaleString()} m
-                </p>
-                <p className="text-sm text-muted-foreground">総獲得標高</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <TrendingUp className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">
-                  {user.stats.totalRoutes}
-                </p>
-                <p className="text-sm text-muted-foreground">作成ルート数</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Tabs */}
-        <Tabs defaultValue="activities" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="activities">アクティビティ</TabsTrigger>
-            <TabsTrigger value="routes">ルート</TabsTrigger>
-            <TabsTrigger value="achievements">実績</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="activities" className="space-y-4">
-            {user.recentActivities.map((activity) => (
-              <Card
-                key={activity.id}
-                className="p-6 hover:shadow-lg transition-shadow cursor-pointer"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {activity.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {activity.date}
-                    </p>
-                    <div className="flex gap-4 text-sm">
-                      <div className="flex items-center gap-1">
-                        <Bike className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-foreground">
-                          {activity.distance} km
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Mountain className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-foreground">
-                          {activity.elevation} m
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-foreground">{activity.time}</span>
-                      </div>
-                    </div>
+                <div className="flex gap-6 mt-1">
+                  <div className="text-center">
+                    <span className="text-lg font-bold text-foreground">
+                      {user.activityRange.distance} km
+                    </span>
                   </div>
-                  <Badge variant="secondary">完了</Badge>
+                  <div className="text-center">
+                    <span className="text-lg font-bold text-foreground">
+                      {user.activityRange.time}
+                    </span>
+                  </div>
+                  <div className="text-center">
+                    <span className="text-lg font-bold text-foreground">
+                      {user.activityRange.elevation} m
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Badge variant="secondary" className="cursor-pointer">
+                  タイム
+                </Badge>
+                <Badge className="cursor-pointer">距離</Badge>
+                <Badge variant="secondary" className="cursor-pointer">
+                  月別
+                </Badge>
+              </div>
+            </div>
+
+            <ActivityChart />
+          </div>
+        </Card>
+
+        {/* Career Stats Section */}
+        <Card className="rounded-none border-x-0 shadow-none">
+          <div className="px-8 py-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-base font-semibold text-foreground">
+                キャリア
+              </h2>
+              <Tabs defaultValue="career">
+                <TabsList className="h-8">
+                  <TabsTrigger value="week" className="text-xs px-3">
+                    週
+                  </TabsTrigger>
+                  <TabsTrigger value="month" className="text-xs px-3">
+                    月
+                  </TabsTrigger>
+                  <TabsTrigger value="year" className="text-xs px-3">
+                    年
+                  </TabsTrigger>
+                  <TabsTrigger value="career" className="text-xs px-3">
+                    キャリア
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            <div className="grid grid-cols-3 gap-0 divide-x divide-y border rounded-lg overflow-hidden">
+              <div className="p-4">
+                <p className="text-2xl font-bold text-foreground">
+                  {user.career.distance.toLocaleString()}
+                </p>
+                <div className="flex items-center gap-1 mt-1">
+                  <Bike className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">
+                    移動距離（キロメートル）
+                  </p>
+                </div>
+              </div>
+              <div className="p-4">
+                <p className="text-2xl font-bold text-foreground">
+                  {user.career.elevation.toLocaleString()}
+                </p>
+                <div className="flex items-center gap-1 mt-1">
+                  <Mountain className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">
+                    メートルの獲得標高
+                  </p>
+                </div>
+              </div>
+              <div className="p-4">
+                <p className="text-2xl font-bold text-foreground">
+                  {user.career.activities}
+                </p>
+                <div className="flex items-center gap-1 mt-1">
+                  <Bike className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">
+                    アクティビティ
+                  </p>
+                </div>
+              </div>
+              <div className="p-4">
+                <p className="text-2xl font-bold text-foreground">
+                  {user.career.activeTime}
+                </p>
+                <div className="flex items-center gap-1 mt-1">
+                  <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">
+                    アクティブ時間
+                  </p>
+                </div>
+              </div>
+              <div className="p-4">
+                <p className="text-2xl font-bold text-foreground">
+                  {user.career.calories.toLocaleString()}
+                </p>
+                <div className="flex items-center gap-1 mt-1">
+                  <Flame className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">消費カロリー</p>
+                </div>
+              </div>
+              <div className="p-4">
+                <p className="text-2xl font-bold text-foreground">
+                  {user.career.photos}
+                </p>
+                <div className="flex items-center gap-1 mt-1">
+                  <Camera className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">
+                    撮影された写真
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Recent Routes & Activities */}
+        <div className="px-8 py-8">
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold text-foreground tracking-tight">
+              最近のルートとアクティビティ
+            </h2>
+            <p className="text-muted-foreground mt-1">
+              最近のライドとお気に入りのルート
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-6">
+            {user.routes.map((route) => (
+              <Card
+                key={route.id}
+                className="flex gap-6 p-6 hover:shadow-md transition-shadow cursor-pointer"
+              >
+                {/* Image placeholder */}
+                <div className="w-40 h-40 shrink-0 rounded-md bg-muted flex items-center justify-center">
+                  <Bike className="h-10 w-10 text-muted-foreground/30" />
+                </div>
+
+                {/* Content */}
+                <div className="flex flex-col gap-4 flex-1 min-w-0">
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-xl font-semibold text-foreground">
+                      {route.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+                      {route.description}
+                    </p>
+                  </div>
+                  <div>
+                    <Button variant="outline" size="sm">
+                      詳細を見る
+                    </Button>
+                  </div>
                 </div>
               </Card>
             ))}
-          </TabsContent>
-
-          <TabsContent value="routes" className="space-y-4">
-            <div className="text-center py-12 text-muted-foreground">
-              <p>保存されたルートがここに表示されます</p>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="achievements" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {user.achievements.map((achievement) => (
-                <Card key={achievement.id} className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="text-4xl">{achievement.icon}</div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">
-                        {achievement.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {achievement.description}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </div>
     </div>
   );
