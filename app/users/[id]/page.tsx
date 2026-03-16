@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getUserInfo } from "@/features/users/fetcher/user-info";
+import { getLoggedInUserInfo } from "@/features/users/fetcher/login-user-info";
 import { getServerSession } from "@ory/nextjs/app";
 import {
   Bike,
@@ -25,17 +25,23 @@ export default async function UserProfilePage({
 }) {
   const { id } = await params;
   const session = await getServerSession();
-  const { data, error } = await getUserInfo(id);
+  if (!session) {
+    return notFound();
+  }
+
+  const { data, error } = await getLoggedInUserInfo();
 
   if (error || !data?.user) {
     notFound();
   }
 
+  const apiUser = data!.user!;
+  const locationParts = [apiUser.locality, apiUser.administrative_area].filter(Boolean);
   const user = {
-    id,
-    name: "Yuki",
+    id: apiUser.id ?? id,
+    name: apiUser.name ?? "",
     team: "Arakawa Cycling Team",
-    location: "Tokyo, Adachi-ku",
+    location: locationParts.length > 0 ? locationParts.join(", ") : "",
     avatar: "/images/design-mode/shadcn.png",
     recentActivities: {
       past4weeks: 0,
@@ -84,20 +90,6 @@ export default async function UserProfilePage({
   return (
     <div className="overflow-auto h-full bg-background">
       <div className="mx-auto max-w-5xl space-y-0">
-        {/* Session debug info */}
-        {session && process.env.NODE_ENV === "development" && (
-          <div className="p-4">
-            <details className="text-xs text-muted-foreground">
-              <summary className="cursor-pointer">
-                セッション情報（開発用）
-              </summary>
-              <pre className="mt-2 p-3 bg-muted rounded text-xs overflow-auto">
-                {JSON.stringify(session, null, 2)}
-              </pre>
-            </details>
-          </div>
-        )}
-
         {/* Hero Banner */}
         <div className="relative h-64 overflow-hidden rounded-b-xl">
           {/* Background overlay */}

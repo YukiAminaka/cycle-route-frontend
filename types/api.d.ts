@@ -397,7 +397,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** ユーザーを取得する */
+        /** ユーザーの公開プロフィールを取得する */
         get: {
             parameters: {
                 query?: never;
@@ -434,6 +434,64 @@ export interface paths {
                 };
                 /** @description Not Found */
                 404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** ログインユーザーを取得する */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["user.LoginUserResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -568,10 +626,10 @@ export interface components {
             last_name?: string;
             name: string;
         };
-        "user.UserResponse": {
-            user?: components["schemas"]["user.UserResponseModel"];
+        "user.LoginUserResponse": {
+            user?: components["schemas"]["user.LoginUserResponseModel"];
         };
-        "user.UserResponseModel": {
+        "user.LoginUserResponseModel": {
             administrative_area?: string;
             country_code?: string;
             description?: string;
@@ -586,6 +644,18 @@ export interface components {
             locality?: string;
             name?: string;
             postal_code?: string;
+        };
+        "user.UserResponse": {
+            user?: components["schemas"]["user.UserResponseModel"];
+        };
+        "user.UserResponseModel": {
+            administrative_area?: string;
+            country_code?: string;
+            description?: string;
+            highlighted_photo_id?: number;
+            id?: string;
+            locality?: string;
+            name?: string;
         };
     };
     responses: never;
