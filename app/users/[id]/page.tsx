@@ -35,55 +35,53 @@ export default async function UserProfilePage({
     notFound();
   }
 
-  const apiUser = data!.user!;
-  const locationParts = [apiUser.locality, apiUser.administrative_area].filter(Boolean);
-  const user = {
-    id: apiUser.id ?? id,
-    name: apiUser.name ?? "",
-    team: "Arakawa Cycling Team",
-    location: locationParts.length > 0 ? locationParts.join(", ") : "",
-    avatar: "/images/design-mode/shadcn.png",
-    recentActivities: {
-      past4weeks: 0,
-    },
-    activityRange: {
-      label: "2024/09/30〜2024/10/06のアクティビティ",
-      distance: 70.1,
-      time: "3時間7分",
-      elevation: 152,
-    },
-    career: {
-      distance: 4155.5,
-      elevation: 20103,
-      activities: 82,
-      activeTime: "170:27",
-      calories: 11888,
-      photos: 2,
-    },
-    routes: [
-      {
-        id: "1",
-        title: "箱根ヒルクライム",
-        description:
-          "神奈川県の定番ヒルクライムコース。急勾配が続く本格的な山岳ルートで、頂上からの眺めは絶景です。",
-        image: null,
-      },
-      {
-        id: "2",
-        title: "多摩川サイクリングロード",
-        description:
-          "東京都内を流れる多摩川沿いの平坦なサイクリングロード。初心者から上級者まで楽しめるコースです。",
-        image: null,
-      },
-      {
-        id: "3",
-        title: "奥多摩周遊",
-        description:
-          "東京都西部の山岳地帯を巡る本格的なルート。豊かな自然の中をダイナミックに走れます。",
-        image: null,
-      },
-    ],
+  const user = data!.user!;
+  const locationParts = [user.locality, user.administrative_area].filter(
+    Boolean
+  );
+
+  const team = "Arakawa Cycling Team";
+  const avatar = "/images/design-mode/shadcn.png";
+
+  const activityRange = {
+    label: "2024/09/30〜2024/10/06のアクティビティ",
+    distance: 70.1,
+    time: "3時間7分",
+    elevation: 152,
   };
+
+  const career = {
+    distance: 4155.5,
+    elevation: 20103,
+    activities: 82,
+    activeTime: "170:27",
+    calories: 11888,
+    photos: 2,
+  };
+
+  const routes = [
+    {
+      id: "1",
+      title: "箱根ヒルクライム",
+      description:
+        "神奈川県の定番ヒルクライムコース。急勾配が続く本格的な山岳ルートで、頂上からの眺めは絶景です。",
+      image: null,
+    },
+    {
+      id: "2",
+      title: "多摩川サイクリングロード",
+      description:
+        "東京都内を流れる多摩川沿いの平坦なサイクリングロード。初心者から上級者まで楽しめるコースです。",
+      image: null,
+    },
+    {
+      id: "3",
+      title: "奥多摩周遊",
+      description:
+        "東京都西部の山岳地帯を巡る本格的なルート。豊かな自然の中をダイナミックに走れます。",
+      image: null,
+    },
+  ];
 
   const days = ["月", "火", "水", "木", "金", "土", "日"];
 
@@ -107,9 +105,9 @@ export default async function UserProfilePage({
           <div className="absolute inset-0 flex items-end p-8 pb-6">
             <div className="flex items-end gap-6">
               <Avatar className="h-28 w-28 border-4 border-white shadow-lg shrink-0">
-                <AvatarImage src={user.avatar} />
+                <AvatarImage src="" />
                 <AvatarFallback className="text-2xl font-bold bg-amber-400 text-white">
-                  {user.name[0]}
+                  {user.name}
                 </AvatarFallback>
               </Avatar>
               <div className="pb-1">
@@ -118,9 +116,12 @@ export default async function UserProfilePage({
                 </h1>
                 <div className="flex items-center gap-1 mt-1 text-white/90">
                   <MapPin className="h-4 w-4" />
-                  <span className="text-sm">{user.location}</span>
+                  <span className="text-sm">
+                    {user.locality}, {user.administrative_area},{" "}
+                    {user.country_code}
+                  </span>
                 </div>
-                <p className="text-white/80 text-sm mt-1">{user.team}</p>
+                <p className="text-white/80 text-sm mt-1"></p>
               </div>
             </div>
 
@@ -147,7 +148,7 @@ export default async function UserProfilePage({
               <div className="min-w-40">
                 <p className="text-sm text-muted-foreground mb-1">過去4週間</p>
                 <p className="text-6xl font-bold text-foreground leading-none">
-                  {user.recentActivities.past4weeks}
+                  {0}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
                   合計アクティビティ
@@ -184,22 +185,22 @@ export default async function UserProfilePage({
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-sm text-muted-foreground">
-                  {user.activityRange.label}
+                  {activityRange.label}
                 </p>
                 <div className="flex gap-6 mt-1">
                   <div className="text-center">
                     <span className="text-lg font-bold text-foreground">
-                      {user.activityRange.distance} km
+                      {activityRange.distance} km
                     </span>
                   </div>
                   <div className="text-center">
                     <span className="text-lg font-bold text-foreground">
-                      {user.activityRange.time}
+                      {activityRange.time}
                     </span>
                   </div>
                   <div className="text-center">
                     <span className="text-lg font-bold text-foreground">
-                      {user.activityRange.elevation} m
+                      {activityRange.elevation} m
                     </span>
                   </div>
                 </div>
@@ -247,7 +248,7 @@ export default async function UserProfilePage({
             <div className="grid grid-cols-3 gap-0 divide-x divide-y border rounded-lg overflow-hidden">
               <div className="p-4">
                 <p className="text-2xl font-bold text-foreground">
-                  {user.career.distance.toLocaleString()}
+                  {career.distance.toLocaleString()}
                 </p>
                 <div className="flex items-center gap-1 mt-1">
                   <Bike className="h-3.5 w-3.5 text-muted-foreground" />
@@ -258,7 +259,7 @@ export default async function UserProfilePage({
               </div>
               <div className="p-4">
                 <p className="text-2xl font-bold text-foreground">
-                  {user.career.elevation.toLocaleString()}
+                  {career.elevation.toLocaleString()}
                 </p>
                 <div className="flex items-center gap-1 mt-1">
                   <Mountain className="h-3.5 w-3.5 text-muted-foreground" />
@@ -269,7 +270,7 @@ export default async function UserProfilePage({
               </div>
               <div className="p-4">
                 <p className="text-2xl font-bold text-foreground">
-                  {user.career.activities}
+                  {career.activities}
                 </p>
                 <div className="flex items-center gap-1 mt-1">
                   <Bike className="h-3.5 w-3.5 text-muted-foreground" />
@@ -280,7 +281,7 @@ export default async function UserProfilePage({
               </div>
               <div className="p-4">
                 <p className="text-2xl font-bold text-foreground">
-                  {user.career.activeTime}
+                  {career.activeTime}
                 </p>
                 <div className="flex items-center gap-1 mt-1">
                   <Clock className="h-3.5 w-3.5 text-muted-foreground" />
@@ -291,7 +292,7 @@ export default async function UserProfilePage({
               </div>
               <div className="p-4">
                 <p className="text-2xl font-bold text-foreground">
-                  {user.career.calories.toLocaleString()}
+                  {career.calories.toLocaleString()}
                 </p>
                 <div className="flex items-center gap-1 mt-1">
                   <Flame className="h-3.5 w-3.5 text-muted-foreground" />
@@ -300,7 +301,7 @@ export default async function UserProfilePage({
               </div>
               <div className="p-4">
                 <p className="text-2xl font-bold text-foreground">
-                  {user.career.photos}
+                  {career.photos}
                 </p>
                 <div className="flex items-center gap-1 mt-1">
                   <Camera className="h-3.5 w-3.5 text-muted-foreground" />
@@ -325,7 +326,7 @@ export default async function UserProfilePage({
           </div>
 
           <div className="flex flex-col gap-6">
-            {user.routes.map((route) => (
+            {routes.map((route) => (
               <Card
                 key={route.id}
                 className="flex gap-6 p-6 hover:shadow-md transition-shadow cursor-pointer"

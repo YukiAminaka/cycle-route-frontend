@@ -8,17 +8,20 @@ import { searchRouteSchema } from "@/features/routes/types/schema";
 import { getMapboxStaticImageUrl } from "@/services/mapbox";
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
-import { Bike, Clock, Mountain, Search } from "lucide-react";
+import { Bike, Clock, LayoutGrid, List, Mountain, Search } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Input } from "./ui/input";
 
+type ViewMode = "card" | "list";
+
 export function MyRoutes() {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("card");
   const [state, action, isPending] = useActionState<
     SearchMyRoutesState | null,
     FormData
@@ -80,6 +83,26 @@ export function MyRoutes() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-4xl font-bold">Myルート</h1>
+          <div className="flex items-center gap-1 rounded-lg border p-1">
+            <Button
+              variant={viewMode === "card" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setViewMode("card")}
+              aria-label="カード表示"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setViewMode("list")}
+              aria-label="リスト表示"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         <Button
@@ -127,59 +150,123 @@ export function MyRoutes() {
         )}
 
         {state?.data?.routes && state.data.routes.length > 0 && (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {state.data.routes.map((route) => (
-              <Card
-                key={route.id}
-                className="group cursor-pointer overflow-hidden transition-shadow hover:shadow-lg"
-                onClick={() => handleViewDetails(route.id)}
-              >
-                <div className="relative aspect-video bg-muted">
-                  {route.polyline ? (
-                    <Image
-                      src={getMapboxStaticImageUrl(route.polyline, {
-                        strokeColor: "F52738",
-                        strokeWidth: 3,
-                        style: "mapbox/streets-v12",
-                        width: 409,
-                        height: 230,
-                      })}
-                      alt={route.name ?? "ルートプレビュー"}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                      ルートプレビュー
+          <>
+            {viewMode === "card" ? (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {state.data.routes.map((route) => (
+                  <Card
+                    key={route.id}
+                    className="group cursor-pointer overflow-hidden transition-shadow hover:shadow-lg"
+                    onClick={() => handleViewDetails(route.id)}
+                  >
+                    <div className="relative aspect-video bg-muted">
+                      {route.polyline ? (
+                        <Image
+                          src={getMapboxStaticImageUrl(route.polyline, {
+                            strokeColor: "F52738",
+                            strokeWidth: 3,
+                            style: "mapbox/streets-v12",
+                            width: 409,
+                            height: 230,
+                          })}
+                          alt={route.name ?? "ルートプレビュー"}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                          ルートプレビュー
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <CardContent className="p-4">
-                  <div className="mb-2 flex items-start justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      {formatDate(route.created_at)}
-                    </span>
-                  </div>
-                  <h3 className="mb-3 text-lg font-semibold">{route.name}</h3>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Bike className="h-4 w-4" />
-                      <span>{formatDistance(route.distance)}</span>
+                    <CardContent className="p-4">
+                      <div className="mb-2 flex items-start justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          {formatDate(route.created_at)}
+                        </span>
+                      </div>
+                      <h3 className="mb-3 text-lg font-semibold">{route.name}</h3>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Bike className="h-4 w-4" />
+                          <span>{formatDistance(route.distance)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          <span>{formatDuration(route.duration)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Mountain className="h-4 w-4" />
+                          <span>{route.elevation_gain ?? 0} m</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-6">
+                {state.data.routes.map((route) => (
+                  <Card
+                    key={route.id}
+                    className="cursor-pointer overflow-hidden transition-shadow hover:shadow-lg"
+                    onClick={() => handleViewDetails(route.id)}
+                  >
+                    <div className="flex flex-wrap gap-6 p-6">
+                      <div className="relative size-40 shrink-0 overflow-hidden rounded-lg bg-muted">
+                        {route.polyline ? (
+                          <Image
+                            src={getMapboxStaticImageUrl(route.polyline, {
+                              strokeColor: "F52738",
+                              strokeWidth: 3,
+                              style: "mapbox/streets-v12",
+                              width: 160,
+                              height: 160,
+                            })}
+                            alt={route.name ?? "ルートプレビュー"}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                            ルートプレビュー
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-1 flex-col gap-4 min-w-40">
+                        <div className="flex flex-col gap-2">
+                          <h3 className="text-2xl font-semibold leading-tight tracking-tight">
+                            {route.name}
+                          </h3>
+                          <div className="flex items-center gap-6 text-base text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Bike className="h-4 w-4" />
+                              <span>{formatDistance(route.distance)}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-4 w-4" />
+                              <span>{formatDuration(route.duration)}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Mountain className="h-4 w-4" />
+                              <span>{route.elevation_gain ?? 0} m</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="text-base text-muted-foreground">
+                            {formatDate(route.created_at)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      <span>{formatDuration(route.duration)}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Mountain className="h-4 w-4" />
-                      <span>{route.elevation_gain ?? 0} m</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
