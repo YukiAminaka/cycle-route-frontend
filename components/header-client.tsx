@@ -55,7 +55,10 @@ export function HeaderClient({
   return (
     <header className="border-b border-border bg-card">
       <div className="flex h-16 items-center justify-between px-4 lg:px-6">
-        <Link href="/" className="flex items-center gap-2">
+        <Link
+          href={isAuthenticated ? "/dashboard" : "/"}
+          className="flex items-center gap-2"
+        >
           <Bike className="h-8 w-8 text-primary" />
           <h1 className="text-xl font-bold text-foreground">CycleRoute</h1>
         </Link>
