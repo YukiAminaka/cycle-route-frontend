@@ -1,3 +1,4 @@
+import { MyRoutes } from "@/components/my-routes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -58,30 +59,6 @@ export default async function UserProfilePage({
     calories: 11888,
     photos: 2,
   };
-
-  const routes = [
-    {
-      id: "1",
-      title: "箱根ヒルクライム",
-      description:
-        "神奈川県の定番ヒルクライムコース。急勾配が続く本格的な山岳ルートで、頂上からの眺めは絶景です。",
-      image: null,
-    },
-    {
-      id: "2",
-      title: "多摩川サイクリングロード",
-      description:
-        "東京都内を流れる多摩川沿いの平坦なサイクリングロード。初心者から上級者まで楽しめるコースです。",
-      image: null,
-    },
-    {
-      id: "3",
-      title: "奥多摩周遊",
-      description:
-        "東京都西部の山岳地帯を巡る本格的なルート。豊かな自然の中をダイナミックに走れます。",
-      image: null,
-    },
-  ];
 
   const days = ["月", "火", "水", "木", "金", "土", "日"];
 
@@ -317,44 +294,12 @@ export default async function UserProfilePage({
         {/* Recent Routes & Activities */}
         <div className="px-8 py-8">
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-foreground tracking-tight">
+            <h2 className="text-lg font-semibold text-foreground tracking-tight">
               最近のルートとアクティビティ
             </h2>
-            <p className="text-muted-foreground mt-1">
-              最近のライドとお気に入りのルート
-            </p>
           </div>
 
-          <div className="flex flex-col gap-6">
-            {routes.map((route) => (
-              <Card
-                key={route.id}
-                className="flex gap-6 p-6 hover:shadow-md transition-shadow cursor-pointer"
-              >
-                {/* Image placeholder */}
-                <div className="w-40 h-40 shrink-0 rounded-md bg-muted flex items-center justify-center">
-                  <Bike className="h-10 w-10 text-muted-foreground/30" />
-                </div>
-
-                {/* Content */}
-                <div className="flex flex-col gap-4 flex-1 min-w-0">
-                  <div className="flex flex-col gap-2">
-                    <h3 className="text-xl font-semibold text-foreground">
-                      {route.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
-                      {route.description}
-                    </p>
-                  </div>
-                  <div>
-                    <Button variant="outline" size="sm">
-                      詳細を見る
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+          <MyRoutes defaultViewMode="list" hideViewToggle />
         </div>
       </div>
     </div>
