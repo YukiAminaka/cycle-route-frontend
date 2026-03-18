@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Bike, Map, TrendingUp, Users } from "lucide-react";
+import { Map, TrendingUp, Users } from "lucide-react";
 import Link from "next/link";
 
 export default async function LandingPage() {
@@ -20,10 +20,7 @@ export default async function LandingPage() {
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
             <Button size="lg" asChild>
-              <Link href="/dashboard">始める</Link>
-            </Button>
-            <Button size="lg" variant="outline">
-              詳しく見る
+              <Link href="/register">始める</Link>
             </Button>
           </div>
         </div>
