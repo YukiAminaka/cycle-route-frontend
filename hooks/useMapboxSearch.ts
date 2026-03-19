@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
-import { Suggestion, LngLat, MapboxRetrieveResult } from "@/types/route";
-import { mapboxSuggest, mapboxRetrieve } from "@/services/mapbox";
+import { mapboxRetrieve, mapboxSuggest } from "@/services/mapbox";
+import { Coordinate, MapboxRetrieveResult, Suggestion } from "@/types/route";
+import { useCallback, useEffect, useState } from "react";
 import { useDebounced } from "./useDebounced";
 import { useSessionToken } from "./useSessionToken";
 
 interface UseMapboxSearchOptions {
-  proximity?: LngLat;
+  proximity?: Coordinate;
   country?: string;
   language?: string;
   debounceMs?: number;
@@ -17,7 +17,9 @@ interface UseMapboxSearchResult {
   suggestions: Suggestion[];
   isLoading: boolean;
   error: Error | null;
-  pickSuggestion: (suggestion: Suggestion) => Promise<MapboxRetrieveResult | null>;
+  pickSuggestion: (
+    suggestion: Suggestion
+  ) => Promise<MapboxRetrieveResult | null>;
   clearSuggestions: () => void;
 }
 
@@ -68,7 +70,11 @@ export function useMapboxSearch(
         }
       } catch (err) {
         if (!isCancelled) {
-          setError(err instanceof Error ? err : new Error("Failed to fetch suggestions"));
+          setError(
+            err instanceof Error
+              ? err
+              : new Error("Failed to fetch suggestions")
+          );
           setSuggestions([]);
         }
       } finally {
@@ -98,7 +104,9 @@ export function useMapboxSearch(
 
         return result;
       } catch (err) {
-        setError(err instanceof Error ? err : new Error("Failed to retrieve location"));
+        setError(
+          err instanceof Error ? err : new Error("Failed to retrieve location")
+        );
         return null;
       }
     },
