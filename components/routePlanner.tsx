@@ -51,8 +51,7 @@ export const RoutePlanner = ({ editRoute }: RoutePlannerProps) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
   const [cues, setCues] = useState<CoursePointRequest[]>([]);
-  const [routeName, setRouteName] = useState("");
-  const [showEditContinueDialog, setShowEditContinueDialog] = useState(false);
+  const [routeName, setRouteName] = useState(editRoute?.name ?? "");
 
   // Route state management (undo/redo + localStorage persistence)
   const routeState = useRouteStateStore((s) => s.present);
@@ -112,6 +111,9 @@ export const RoutePlanner = ({ editRoute }: RoutePlannerProps) => {
     onStateChange: handleStateChange,
   });
 
+  // editMetaが存在する新規作成モードの場合にダイアログを表示（派生状態）
+  const showEditContinueDialog = isReady && !editRoute && !!editMeta;
+
   // 編集モードの初期化: editRouteが渡された場合
   useEffect(() => {
     if (!isReady || !editRoute || hasInitializedEditRef.current) return;
@@ -130,18 +132,15 @@ export const RoutePlanner = ({ editRoute }: RoutePlannerProps) => {
       routeName: editRoute.name ?? "",
     });
 
-    // ルート名を設定
-    setRouteName(editRoute.name ?? "");
   }, [isReady, editRoute, initializeState, restoreState, setEditMeta]);
 
   // 新規作成モードで、以前編集中だった場合はダイアログを表示
   useEffect(() => {
     if (!isReady || editRoute || hasRestoredRef.current) return;
 
-    // editMetaが存在する = 以前編集モードだった
-    if (editMeta) {
-      setShowEditContinueDialog(true);
-    } else if (routeState.waypoints.length > 0) {
+    // editMetaが存在する場合はダイアログを派生状態で表示するため何もしない
+    // 通常の新規作成で下書きがある場合は復元
+    if (!editMeta && routeState.waypoints.length > 0) {
       // 通常の新規作成で下書きがある場合は復元
       hasRestoredRef.current = true;
       restoreState(routeState);
@@ -150,21 +149,20 @@ export const RoutePlanner = ({ editRoute }: RoutePlannerProps) => {
 
   // ダイアログで「編集を継続」を選択
   const handleContinueEditing = useCallback(() => {
-    setShowEditContinueDialog(false);
     hasRestoredRef.current = true;
     // editMetaが存在する状態で下書きを復元（編集中のルートを新規作成画面で表示）
     if (routeState.waypoints.length > 0) {
       restoreState(routeState);
     }
-    // editMetaからルート名を復元
+    // editMetaからルート名を復元してからクリア（ダイアログを閉じる）
     if (editMeta?.routeName) {
       setRouteName(editMeta.routeName);
     }
-  }, [routeState, restoreState, editMeta]);
+    clearEditMeta();
+  }, [routeState, restoreState, editMeta, clearEditMeta]);
 
   // ダイアログで「新規作成」を選択
   const handleStartNew = useCallback(() => {
-    setShowEditContinueDialog(false);
     hasRestoredRef.current = true;
     // 下書きと編集メタをクリア
     clearState();
@@ -266,7 +264,6 @@ export const RoutePlanner = ({ editRoute }: RoutePlannerProps) => {
           q={query}
           setQ={setQuery}
           pick={handlePickSuggestion}
-          waypoints={waypoints}
           isCollapsed={isToolbarCollapsed}
           onCollapsedChange={setIsToolbarCollapsed}
         />
@@ -287,7 +284,7 @@ export const RoutePlanner = ({ editRoute }: RoutePlannerProps) => {
         )}
 
         {/* 編集継続確認ダイアログ */}
-        <Dialog open={showEditContinueDialog} onOpenChange={setShowEditContinueDialog}>
+        <Dialog open={showEditContinueDialog} onOpenChange={(open) => { if (!open) clearEditMeta(); }}>
           <DialogContent showCloseButton={false}>
             <DialogHeader>
               <DialogTitle>編集中のルートがあります</DialogTitle>

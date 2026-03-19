@@ -58,7 +58,7 @@ export interface Admin {
 
 // ルートの区間 (Leg) - 出発地から目的地（または経由地）まで
 export interface RouteLeg {
-  via_waypoints: any[]; // 具体的なデータがないため any[] としています
+  via_waypoints: unknown[]; // 具体的なデータがないため unknown[] としています
   admins: Admin[];
   weight: number;
   duration: number;

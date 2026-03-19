@@ -69,9 +69,7 @@ export async function createRoute(
   };
   const cookieStore = await cookies();
   try {
-    const { data, error, response } = await apiClient.POST("/routes", {
-      // OpenAPI定義のbody型が不完全なため、anyでキャスト
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await apiClient.POST("/routes", {
       body: validData,
       headers: {
         Cookie: cookieStore.toString(),
@@ -89,7 +87,7 @@ export async function createRoute(
 
     // 成功時はsuccessステータスを返す
     return { ...submission.reply({ resetForm: true }), status: "success" as const };
-  } catch (error) {
+  } catch {
     // 予期しないエラー（500エラーなど）をキャッチ
     return submission.reply({
       formErrors: [

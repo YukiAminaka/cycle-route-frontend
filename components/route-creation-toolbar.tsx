@@ -32,8 +32,6 @@ type Session = {
   renew: () => void;
 };
 
-type LngLat = [number, number];
-
 type RouteCreationToolbarProps = {
   onClear: () => void;
   onUndo: () => void;
@@ -45,7 +43,6 @@ type RouteCreationToolbarProps = {
   q: string;
   setQ: (value: string) => void;
   pick: (s: Suggestion) => Promise<void>;
-  waypoints: LngLat[];
   isCollapsed: boolean;
   onCollapsedChange: (collapsed: boolean) => void;
 };
@@ -61,11 +58,9 @@ export function RouteCreationToolbar({
   q,
   setQ,
   pick,
-  waypoints,
   isCollapsed,
   onCollapsedChange,
 }: RouteCreationToolbarProps) {
-  const [locationInput, setLocationInput] = useState("");
   const [roadSurface, setRoadSurface] = useState("paved");
   const [routeColor, setRouteColor] = useState("#ef4444");
   const profile = useRoutingProfileStore((s) => s.routing_profiles);

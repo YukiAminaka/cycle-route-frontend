@@ -90,9 +90,8 @@ export function CreateRouteDialog({
 
   useEffect(() => {
     if (lastResult?.status === "success") {
-      // 成功時にトーストを表示してダイアログを閉じ、ダッシュボードに遷移
+      // 成功時にトーストを表示してダッシュボードに遷移（ダイアログは派生状態で閉じる）
       toast.success("ルートが正常に保存されました");
-      setOpen(false);
       router.push("/dashboard");
     } else if (lastResult?.status === "error") {
       // エラー時はトーストでエラーメッセージを表示（ダイアログは閉じない）
@@ -102,8 +101,11 @@ export function CreateRouteDialog({
     }
   }, [lastResult, form.errors, router]);
 
+  // 成功時はダイアログを閉じる（派生状態）
+  const effectiveOpen = open && lastResult?.status !== "success";
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={effectiveOpen} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
           variant="outline"
