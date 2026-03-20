@@ -33,37 +33,24 @@ const MAX_HISTORY_LENGTH = 50;
  * ルート状態の永続化とundo/redo履歴を管理するhook
  */
 export function useRouteState() {
-  const [history, setHistory] = useState<RouteHistory>({
-    past: [],
-    present: EMPTY_STATE,
-    future: [],
-  });
-
-  const isRestoringRef = useRef(false);
-  const isInitializedRef = useRef(false);
-
-  // localStorageから復元
-  useEffect(() => {
-    if (isInitializedRef.current) return;
-    isInitializedRef.current = true;
+  const [history, setHistory] = useState<RouteHistory>(() => {
     console.log("Restoring route state from localStorage...");
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved) as RouteState;
         if (parsed.waypoints?.length > 0) {
-          isRestoringRef.current = true;
-          setHistory({
-            past: [],
-            present: parsed,
-            future: [],
-          });
+          return { past: [], present: parsed, future: [] };
         }
       }
     } catch (e) {
       console.warn("Failed to restore route state:", e);
     }
-  }, []);
+    return { past: [], present: EMPTY_STATE, future: [] };
+  });
+
+  // localStorageから復元した場合は最初の保存をスキップ
+  const isRestoringRef = useRef(history.present.waypoints.length > 0);
 
   // localStorageに保存
   useEffect(() => {
@@ -175,7 +162,6 @@ export function useRouteState() {
     state: history.present,
     canUndo: history.past.length > 0,
     canRedo: history.future.length > 0,
-    isRestored: isRestoringRef.current,
     pushState,
     updateState,
     undo,

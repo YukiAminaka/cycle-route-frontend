@@ -1,0 +1,89 @@
+name: Deploy
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: ${{ secrets.GCP_REGION }}
+  BUILD_ACCOUNT_EMAIL: ${{ secrets.BUILD_ACCOUNT }}
+  WORKLOAD_IDENTITY_PROVIDER_NAME: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+
+  ARTIFACT_REPO_FRONTEND: ${{ secrets.ARTIFACT_REPO_FRONTEND }}
+
+  IMAGE_NAME_FRONTEND: frontend
+
+  CLOUD_RUN_FRONTEND: rideline-production-frontend
+
+  ROOT_PATH_FRONTEND: .
+  DOCKERFILE_FRONTEND: ./Dockerfile
+
+concurrency: # 多重実行の防止
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }} # PRのみキャンセル可
+
+jobs:
+  build-frontend:
+    name: Docker Build Frontend
+    runs-on: ubuntu-latest
+    environment: prod
+    timeout-minutes: 15
+    if: (github.event_name == 'pull_request' && github.base_ref == 'main') || github.ref == 'refs/heads/main'
+    permissions:
+      contents: "read"
+      id-token: "write"
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+      - name: "Authenticate to Google Cloud"
+        id: "auth"
+        uses: "google-github-actions/auth@v3"
+        with:
+          token_format: "access_token"
+          service_account: ${{ env.BUILD_ACCOUNT_EMAIL }}
+          workload_identity_provider: "${{ env.WORKLOAD_IDENTITY_PROVIDER_NAME }}"
+      - name: Authorize Docker
+        uses: "docker/login-action@v3"
+        with:
+          username: "oauth2accesstoken"
+          password: "${{ steps.auth.outputs.access_token }}"
+          registry: "${{ env.REGION }}-docker.pkg.dev"
+      - name: Handle Docker Image for API
+        uses: ./.github/actions/docker-image-build-and-rotate
+        with:
+          context: "${{ env.ROOT_PATH_FRONTEND }}"
+          dockerfile: "${{ env.DOCKERFILE_FRONTEND }}"
+          image_name: ${{ env.IMAGE_NAME_FRONTEND }}
+          artifact_repo: "${{ env.ARTIFACT_REPO_FRONTEND }}"
+          push_image: ${{ github.event_name != 'pull_request' }} # PRのときはイメージをビルドするだけでpushしない
+          build_args: |
+            NEXT_PUBLIC_MAPTILER_KEY=${{ secrets.NEXT_PUBLIC_MAPTILER_KEY }}
+            NEXT_PUBLIC_MAPBOX_KEY=${{ secrets.NEXT_PUBLIC_MAPBOX_KEY }}
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_ORY_SDK_URL=${{ secrets.NEXT_PUBLIC_ORY_SDK_URL }}
+
+  deploy-frontend:
+    name: Deploy Frontend to Cloud Run
+    runs-on: ubuntu-latest
+    environment: prod
+    timeout-minutes: 5
+    if: github.ref == 'refs/heads/main'
+    needs: [build-frontend]
+    permissions:
+      contents: "read"
+      id-token: "write"
+    steps:
+      - name: "Authenticate to Google Cloud"
+        uses: "google-github-actions/auth@v3"
+        with:
+          service_account: ${{ env.BUILD_ACCOUNT_EMAIL }}
+          workload_identity_provider: "${{ env.WORKLOAD_IDENTITY_PROVIDER_NAME }}"
+      - name: Deploy API to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v3
+        with:
+          service: ${{ env.CLOUD_RUN_FRONTEND }}
+          image: "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO_FRONTEND }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}"
+          region: ${{ env.REGION }}

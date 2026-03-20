@@ -24,7 +24,7 @@ export default async function UserProfilePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+  await params;
   const session = await getServerSession();
   if (!session) {
     return notFound();
@@ -37,13 +37,6 @@ export default async function UserProfilePage({
   }
 
   const user = data!.user!;
-  const locationParts = [user.locality, user.administrative_area].filter(
-    Boolean
-  );
-
-  const team = "Arakawa Cycling Team";
-  const avatar = "/images/design-mode/shadcn.png";
-
   const activityRange = {
     label: "2024/09/30〜2024/10/06のアクティビティ",
     distance: 70.1,

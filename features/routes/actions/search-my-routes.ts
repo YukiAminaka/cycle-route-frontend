@@ -80,7 +80,7 @@ export async function searchMyRoutes(
       submission: submission.reply(),
       data,
     };
-  } catch (error) {
+  } catch {
     return {
       submission: submission.reply({
         formErrors: ["検索中にエラーが発生しました"],
