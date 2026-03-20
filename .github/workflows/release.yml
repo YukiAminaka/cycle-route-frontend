@@ -3,14 +3,8 @@ name: Deploy
 on:
   push:
     branches: ["main"]
-    paths:
-      - ".github/workflows/release.yml"
-      - ".github/actions/docker-image-build-and-rotate/**"
   pull_request:
     branches: ["main"]
-    paths:
-      - ".github/workflows/release.yml"
-      - ".github/actions/docker-image-build-and-rotate/**"
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
