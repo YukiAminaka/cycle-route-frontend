@@ -6,3 +6,6 @@ README.md
 .gitignore
 Dockerfile
 .dockerignore
+backend
+.env*
+.gitmodules
