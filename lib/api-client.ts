@@ -5,7 +5,7 @@ import createClient from "openapi-fetch";
 const auth = new GoogleAuth();
 
 const client = createClient<paths>({
-  baseUrl: process.env.API_URL,
+  baseUrl: `${process.env.API_URL}/api/v1`,
 });
 
 // バックエンドのcloud runと通信するためには、リクエストにIDトークンを付与する必要がある
