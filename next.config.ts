@@ -18,11 +18,11 @@ const nextConfig: NextConfig = {
           { key: 'Cache-Control', value: 'public, max-age=86400, s-maxage=86400' },
         ],
       },
-      // ランディングページはCDNで1時間キャッシュ
+      // ランディングページはセッション依存コンテンツ（ヘッダー）があるためキャッシュ禁止
       {
         source: '/',
         headers: [
-          { key: 'Cache-Control', value: 'public, max-age=60, s-maxage=3600' },
+          { key: 'Cache-Control', value: 'private, no-store' },
         ],
       },
       // 認証ページ・ユーザー固有ページはキャッシュ禁止
