@@ -7,13 +7,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { exportGPX } from "@/features/routes/actions/export-gpx";
 import { RouteResponseModel } from "@/types/api";
 import bbox from "@turf/bbox";
 import {
   Bike,
   Clock,
   Download,
-  FileJson,
   Map as MapIcon,
   Mountain,
   Pencil,
@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import type { MapEvent } from "react-map-gl/maplibre";
 import Map, { Layer, MapProvider, Source } from "react-map-gl/maplibre";
+import { toast } from "sonner";
 
 interface RouteDetailProps {
   route: RouteResponseModel;
@@ -127,6 +128,25 @@ export default function RouteDetail({ route }: RouteDetailProps) {
     }
   };
 
+  const handleExportGPX = async () => {
+    if (!route.id) return;
+    const result = await exportGPX(route.id);
+    if ("error" in result) {
+      toast.error(result.error, {
+        position: "bottom-right",
+      });
+      return;
+    }
+    const blob = new Blob([result.gpxContent], { type: "application/gpx+xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${route.name || "route"}.gpx`;
+    a.click();
+    // 必要がなくなったBlobのメモリを解放
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <MapProvider>
       <div className="relative h-full w-full flex">
@@ -164,13 +184,9 @@ export default function RouteDetail({ route }: RouteDetailProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem className="gap-2">
+                <DropdownMenuItem className="gap-2" onClick={handleExportGPX}>
                   <MapIcon className="h-4 w-4" />
                   GPX形式
-                </DropdownMenuItem>
-                <DropdownMenuItem className="gap-2">
-                  <FileJson className="h-4 w-4" />
-                  GeoJSON形式
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
