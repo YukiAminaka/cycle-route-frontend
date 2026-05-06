@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { exportGPX } from "@/features/routes/actions/export-gpx";
+import { sanitizeFileName } from "@/lib/utils";
 import { RouteResponseModel } from "@/types/api";
 import bbox from "@turf/bbox";
 import {
@@ -137,13 +138,20 @@ export default function RouteDetail({ route }: RouteDetailProps) {
       });
       return;
     }
+    // 1. Blobを作成
     const blob = new Blob([result.gpxContent], { type: "application/gpx+xml" });
+
+    // 2. オブジェクトURLを生成
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${route.name || "route"}.gpx`;
-    a.click();
-    // 必要がなくなったBlobのメモリを解放
+
+    // 3. ダウンロード用の <a> タグを生成
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${sanitizeFileName(route.name || "", "route")}.gpx`;
+
+    // 4. クリックしてダウンロードを実行
+    link.click();
+    // 5. 必要がなくなったBlobのメモリを解放（メモリリーク防止）
     URL.revokeObjectURL(url);
   };
 
