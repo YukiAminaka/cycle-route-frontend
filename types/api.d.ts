@@ -410,6 +410,88 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/routes/explore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** ルートを探索する */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Keyword to search in route names */
+                    q?: string;
+                    /** @description Latitude of the reference point */
+                    lat?: number;
+                    /** @description Longitude of the reference point */
+                    lng?: number;
+                    /** @description Search radius (meters) */
+                    r?: number;
+                    /** @description Minimum distance filter (kilometers) */
+                    min_distance?: number;
+                    /** @description Maximum distance filter (kilometers) */
+                    max_distance?: number;
+                    /** @description Pagination offset */
+                    offset?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["route.RouteListResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.ErrorResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.ErrorResponse"];
+                    };
+                };
+                /** @description Internal Server Error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["response.ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users": {
         parameters: {
             query?: never;
@@ -650,6 +732,7 @@ export interface components {
         };
         "route.RouteListResponse": {
             routes?: components["schemas"]["route.RouteResponseModel"][];
+            total_count?: number;
         };
         "route.RouteResponse": {
             route?: components["schemas"]["route.RouteResponseModel"];
