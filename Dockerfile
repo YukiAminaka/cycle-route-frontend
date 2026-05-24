@@ -3,7 +3,7 @@ FROM node:24-slim AS base
 # Stage 1: Install dependencies
 FROM base AS deps
 WORKDIR /app
-RUN corepack enable pnpm
+RUN corepack enable pnpm && corepack install -g pnpm@latest-11
 COPY pnpm-lock.yaml ./
 RUN pnpm fetch
 COPY package.json ./
