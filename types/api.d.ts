@@ -692,10 +692,7 @@ export interface paths {
             parameters: {
                 query?: never;
                 header?: never;
-                path: {
-                    /** @description User ID */
-                    id: string;
-                };
+                path?: never;
                 cookie?: never;
             };
             /** @description Update User Location Request */
@@ -761,10 +758,7 @@ export interface paths {
             parameters: {
                 query?: never;
                 header?: never;
-                path: {
-                    /** @description User ID */
-                    id: string;
-                };
+                path?: never;
                 cookie?: never;
             };
             /** @description Update User Profile Request */
