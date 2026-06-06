@@ -137,7 +137,9 @@ export function HeaderClient({
                     メッセージ
                   </DropdownMenuItem> */}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push("/settings")}>
+                  <DropdownMenuItem
+                    onClick={() => router.push("/settings/profile")}
+                  >
                     <Settings className="mr-2 h-4 w-4" />
                     設定
                   </DropdownMenuItem>
