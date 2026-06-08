@@ -48,6 +48,41 @@ export function getMapboxStaticImageUrl(
 }
 
 /**
+ * Mapbox Static Images APIのURLを生成する（ピンマーカー付き）
+ *
+ * @param longitude - 経度
+ * @param latitude - 緯度
+ * @param options - 画像生成オプション
+ * @returns Static Images APIのURL
+ */
+export function getMapboxStaticPinImageUrl(
+  longitude: number,
+  latitude: number,
+  options: {
+    width?: number;
+    height?: number;
+    zoom?: number;
+    pinColor?: string;
+    style?: string;
+  } = {}
+): string {
+  const token = validateToken();
+
+  const {
+    width = 400,
+    height = 225,
+    zoom = 13,
+    pinColor = "F52738",
+    style = "mapbox/streets-v12",
+  } = options;
+
+  const marker = `pin-l+${pinColor}(${longitude},${latitude})`;
+  const center = `${longitude},${latitude},${zoom}`;
+
+  return `https://api.mapbox.com/styles/v1/${style}/static/${marker}/${center}/${width}x${height}?access_token=${token}`;
+}
+
+/**
  * Validates that the Mapbox API token is available
  * @throws Error if token is missing
  */
