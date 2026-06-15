@@ -1,5 +1,5 @@
 import { mapboxRetrieve, mapboxSuggest } from "@/services/mapbox";
-import { Coordinate, MapboxRetrieveResult, Suggestion } from "@/types/route";
+import { Coordinate, MapboxRetrieveResult, Suggestion } from "@/types/mapbox";
 import { useCallback, useEffect, useState } from "react";
 import { useDebounced } from "./useDebounced";
 import { useSessionToken } from "./useSessionToken";

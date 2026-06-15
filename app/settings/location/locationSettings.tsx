@@ -1,8 +1,11 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { getMapboxStaticPinImageUrl } from "@/services/mapbox";
+import { Pencil } from "lucide-react";
 import Image from "next/image";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { LocationEditDialog } from "./location-edit-dialog";
 
 type LocationSettingsProps = {
   location: string; // geojson point
@@ -11,10 +14,13 @@ type LocationSettingsProps = {
 const DEFAULT_LOCATION = { longitude: 139.753, latitude: 35.6844 };
 
 export function LocationSettings({ location }: LocationSettingsProps) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   const homeLocation = useMemo(() => {
     if (location) {
       try {
-        const point = JSON.parse(location);
+        const features = JSON.parse(location);
+        const point = features.features[0].geometry;
         return {
           longitude: point.coordinates[0] as number,
           latitude: point.coordinates[1] as number,
@@ -40,7 +46,7 @@ export function LocationSettings({ location }: LocationSettingsProps) {
           ルートプランナーのデフォルトの位置を設定
         </p>
       </div>
-      <div className="relative w-full aspect-video overflow-hidden border">
+      <div className="relative w-full aspect-video overflow-hidden border group">
         <Image
           src={mapImageUrl}
           alt="デフォルトの位置プレビュー"
@@ -48,7 +54,23 @@ export function LocationSettings({ location }: LocationSettingsProps) {
           className="object-cover"
           unoptimized
         />
+        <Button
+          variant="secondary"
+          size="sm"
+          className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={() => setDialogOpen(true)}
+        >
+          <Pencil className="w-4 h-4 mr-1" />
+          編集
+        </Button>
       </div>
+
+      <LocationEditDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        initialLongitude={homeLocation.longitude}
+        initialLatitude={homeLocation.latitude}
+      />
     </div>
   );
 }
