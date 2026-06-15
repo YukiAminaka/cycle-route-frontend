@@ -14,7 +14,7 @@ import {
   RouteResponseModel,
   WaypointRequest,
 } from "@/types/api";
-import { Coordinate } from "@/types/route";
+import { Coordinate } from "@/types/mapbox";
 import { Button } from "./ui/button";
 import {
   Dialog,
