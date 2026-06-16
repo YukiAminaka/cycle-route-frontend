@@ -45,13 +45,17 @@ export function useMapboxSearch(
   const debouncedQuery = useDebounced(query, debounceMs);
   const session = useSessionToken();
 
-  // Fetch suggestions when debounced query changes
-  useEffect(() => {
-    if (!debouncedQuery.trim()) {
+  const handleSetQuery = useCallback((newQuery: string) => {
+    setQuery(newQuery);
+    if (!newQuery.trim()) {
       setSuggestions([]);
       setError(null);
-      return;
     }
+  }, []);
+
+  // Fetch suggestions when debounced query changes
+  useEffect(() => {
+    if (!debouncedQuery.trim()) return;
 
     let isCancelled = false;
     setIsLoading(true);
@@ -120,7 +124,7 @@ export function useMapboxSearch(
 
   return {
     query,
-    setQuery,
+    setQuery: handleSetQuery,
     suggestions,
     isLoading,
     error,
