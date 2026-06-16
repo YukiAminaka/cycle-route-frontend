@@ -75,6 +75,15 @@ export const RoutePlanner = ({
   const canUndo = past.length > 0;
   const canRedo = future.length > 0;
 
+  const proximity = useMemo<Coordinate>(
+    () =>
+      initialLocation
+        ? [initialLocation.longitude, initialLocation.latitude]
+        : TOKYO_STATION,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   // Mapbox search integration
   const {
     query, // 検索クエリ
@@ -85,9 +94,7 @@ export const RoutePlanner = ({
     pickSuggestion, // 検索候補を選択する関数
     clearSuggestions, // 検索候補をクリアする関数
   } = useMapboxSearch({
-    proximity: initialLocation
-      ? [initialLocation.longitude, initialLocation.latitude]
-      : TOKYO_STATION,
+    proximity,
     country: "JP",
     language: "ja",
     debounceMs: 160, // デバウンス時間
