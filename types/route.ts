@@ -115,11 +115,3 @@ export interface MapboxRetrieveResult {
   coord?: Coordinate;
   label: string;
 }
-
-export interface MapboxSuggestOptions {
-  proximity?: Coordinate;
-  country?: string;
-  language?: string;
-  limit?: number;
-  types?: string;
-}

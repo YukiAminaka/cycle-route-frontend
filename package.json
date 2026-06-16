@@ -16,6 +16,8 @@
     "@conform-to/react": "^1.19.4",
     "@conform-to/zod": "^1.19.4",
     "@hookform/resolvers": "^3.10.0",
+    "@mapbox/search-js-core": "^1.5.1",
+    "@mapbox/search-js-react": "^1.5.1",
     "@maplibre/maplibre-gl-directions": "^0.9.1",
     "@ory/elements-react": "^1.2.0",
     "@ory/nextjs": "1.0.0-rc.1",
