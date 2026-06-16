@@ -1,4 +1,4 @@
-import { Coordinate, MapboxRetrieveResult, Suggestion } from "@/types/route";
+import { Coordinate, MapboxRetrieveResult, Suggestion } from "@/types/mapbox";
 import {
   SearchBoxCore,
   SearchBoxOptions,
