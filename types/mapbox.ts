@@ -133,14 +133,6 @@ export interface MapboxRetrieveResult {
   label: string;
 }
 
-export interface MapboxSuggestOptions {
-  proximity?: Coordinate;
-  country?: string;
-  language?: string;
-  limit?: number;
-  types?: string;
-}
-
 export interface GeocodingResult {
   type: string;
   features: MapboxFeature[];
