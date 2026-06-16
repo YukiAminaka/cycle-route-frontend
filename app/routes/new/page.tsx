@@ -1,4 +1,4 @@
-import { RoutePlannerWrapper } from "@/components/route-planner-wrapper";
+import { RoutePlannerWrapper } from "@/features/routes/components/route-planner-wrapper";
 import { getLoggedInUserInfo } from "@/features/users/fetcher/login-user-info";
 
 export default async function NewRoutePage() {

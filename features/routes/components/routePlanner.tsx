@@ -15,10 +15,8 @@ import {
   WaypointRequest,
 } from "@/types/api";
 import { Coordinate } from "@/types/mapbox";
-import { ErrorBoundary } from "./error-boundary";
-import { RouteCreationSidebar } from "./route-creation-sidebar";
-import { RouteCreationToolbar } from "./route-creation-toolbar";
-import { Button } from "./ui/button";
+import { ErrorBoundary } from "@/components/error-boundary";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +24,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "./ui/dialog";
+} from "@/components/ui/dialog";
+import { RouteCreationSidebar } from "./route-creation-sidebar";
+import { RouteCreationToolbar } from "./route-creation-toolbar";
 
 const TOKYO_STATION: Coordinate = [139.767, 35.681];
 const INITIAL_VIEW = {
