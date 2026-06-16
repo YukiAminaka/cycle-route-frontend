@@ -1,14 +1,5 @@
-<<<<<<< HEAD
-=======
-import {
-  GeocodingResult,
-  MapboxFeature,
-  MapboxRetrieveResult,
-  MapboxSuggestOptions,
-  Suggestion,
-} from "@/types/mapbox";
+import { GeocodingResult, MapboxFeature } from "@/types/mapbox";
 
->>>>>>> main
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_KEY;
 
 /**
@@ -149,4 +140,3 @@ function validateToken(): string {
   }
   return MAPBOX_TOKEN;
 }
-

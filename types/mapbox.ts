@@ -132,3 +132,9 @@ export interface MapboxRetrieveResult {
   coord?: Coordinate;
   label: string;
 }
+
+export interface GeocodingResult {
+  type: string;
+  features: MapboxFeature[];
+  attribution: string;
+}
