@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 
 const menuItems = [
   { label: "プロフィール", href: "/settings/profile" },
+  { label: "位置情報", href: "/settings/location" },
   { label: "アカウント", href: "/settings" },
 ];
 

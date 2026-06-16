@@ -1,3 +1,4 @@
+import { Coordinate, MapboxRetrieveResult, Suggestion } from "@/types/route";
 import {
   SearchBoxCore,
   SearchBoxOptions,
@@ -6,7 +7,6 @@ import {
   SearchBoxSuggestionResponse,
   SearchSession,
 } from "@mapbox/search-js-core";
-import { Coordinate, MapboxRetrieveResult, Suggestion } from "@/types/route";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
 interface UseMapboxSearchOptions {
@@ -52,9 +52,19 @@ function searchReducer(state: SearchState, action: SearchAction): SearchState {
     case "suggestions_received":
       return { ...state, suggestions: action.suggestions, isLoading: false };
     case "search_failed":
-      return { ...state, error: action.error, suggestions: [], isLoading: false };
+      return {
+        ...state,
+        error: action.error,
+        suggestions: [],
+        isLoading: false,
+      };
     case "pick_succeeded":
-      return { ...state, query: action.label, suggestions: [], isLoading: false };
+      return {
+        ...state,
+        query: action.label,
+        suggestions: [],
+        isLoading: false,
+      };
     case "cleared":
       return { ...state, suggestions: [], error: null };
   }
@@ -138,7 +148,11 @@ export function useMapboxSearch(
         return;
       }
       dispatch({ type: "query_changed", query: newQuery });
-      const { country: c, language: l, proximity: p } = searchOptionsRef.current;
+      const {
+        country: c,
+        language: l,
+        proximity: p,
+      } = searchOptionsRef.current;
       session.suggest(newQuery, {
         country: c,
         language: l,
