@@ -1,4 +1,4 @@
-FROM node:24-slim AS base
+FROM node:24.22.1-slim AS base
 
 # Stage 1: Install dependencies
 FROM base AS deps
@@ -32,6 +32,5 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-USER nonroot
 EXPOSE 3000
 CMD ["server.js"]
